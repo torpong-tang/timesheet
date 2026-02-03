@@ -1,0 +1,104 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// User Roles
+enum Role {
+  ADMIN
+  GM
+  PM
+  DEV
+}
+
+model User {
+  id          String    @id @default(uuid())
+  userlogin   String    @unique // Support login by 'Torpong.T'
+  email       String    @unique
+  password    String
+  name        String?
+  role        Role      @default(DEV)
+  image       String?   // Stored as relative path e.g. "/imgs/profile_123.jpg"
+  
+  // Relations
+  assignments ProjectAssignment[]
+  timesheets  TimesheetEntry[]
+  auditLogs   AuditLog[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Project {
+  id          String   @id @default(cuid())
+  code        String   @unique // e.g. STW02S6
+  name        String
+  startDate   DateTime
+  endDate     DateTime
+  budget      Float
+  
+  // Relations
+  assignments ProjectAssignment[]
+  timesheets  TimesheetEntry[]
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model ProjectAssignment {
+  id        String @id @default(cuid())
+  userId    String
+  projectId String
+  
+  user      User    @relation(fields: [userId], references: [id])
+  project   Project @relation(fields: [projectId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@unique([userId, projectId])
+}
+
+model TimesheetEntry {
+  id          String   @id @default(cuid())
+  date        DateTime
+  hours       Float    // Validated 0.5 to 7.0 step 0.5
+  description String
+  
+  userId      String
+  projectId   String
+  user        User     @relation(fields: [userId], references: [id])
+  project     Project  @relation(fields: [projectId], references: [id])
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt // For lock logic check
+
+  @@index([userId, date])
+}
+
+model Holiday {
+  id    String   @id @default(cuid())
+  date  DateTime @unique
+  name  String
+  year  Int
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  action    String
+  details   String?
+  userId    String
+  
+  user      User     @relation(fields: [userId], references: [id])
+  
+  timestamp DateTime @default(now())
+}
