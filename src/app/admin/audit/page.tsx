@@ -54,64 +54,66 @@ export default function AuditPage() {
 
     return (
         <div className="space-y-6">
-            <div className="flex justify-between items-center">
-                <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-100">Audit Logs</h1>
+            <div className="flex items-center justify-between">
+                <div>
+                    <h1 className="text-4xl font-black tracking-tight text-slate-900 mb-1">
+                        System <span className="text-primary italic">Audits</span>
+                    </h1>
+                    <p className="text-slate-500 font-medium">Track security events and administrative actions</p>
+                </div>
+                <div className="p-3 bg-white rounded-2xl flex items-center gap-2 border border-slate-200 shadow-sm">
+                    <ShieldAlert className="h-5 w-5 text-primary" />
+                    <span className="text-xs font-black text-slate-700 uppercase tracking-widest">Protected Activity</span>
+                </div>
             </div>
 
-            <Card>
-                <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                        <ShieldAlert className="h-5 w-5 text-orange-500" />
-                        System Activity
-                    </CardTitle>
-                    <CardDescription>
-                        Track critical actions and security events.
-                    </CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <div className="rounded-md border">
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Timestamp</TableHead>
-                                    <TableHead>User</TableHead>
-                                    <TableHead>Action</TableHead>
-                                    <TableHead>Details</TableHead>
+            <div className="bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden">
+                <Table>
+                    <TableHeader className="bg-slate-50">
+                        <TableRow className="hover:bg-transparent border-slate-200">
+                            <TableHead className="font-bold text-slate-900">Timestamp</TableHead>
+                            <TableHead className="font-bold text-slate-900">User</TableHead>
+                            <TableHead className="font-bold text-slate-900">Action</TableHead>
+                            <TableHead className="font-bold text-slate-900">Details</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {logs.length === 0 ? (
+                            <TableRow>
+                                <TableCell colSpan={4} className="h-48 text-center text-slate-400 font-medium italic">
+                                    No audit logs recorded yet.
+                                </TableCell>
+                            </TableRow>
+                        ) : (
+                            logs.map((log) => (
+                                <TableRow key={log.id} className="hover:bg-slate-50 border-slate-100 transition-colors">
+                                    <TableCell className="font-mono text-[10px] text-slate-500 font-bold">
+                                        {format(new Date(log.timestamp), "dd MMM yyyy")}
+                                        <br />
+                                        <span className="text-primary">{format(new Date(log.timestamp), "HH:mm:ss")}</span>
+                                    </TableCell>
+                                    <TableCell>
+                                        <div className="flex flex-col">
+                                            <span className="font-bold text-slate-900 text-sm">{log.user.name ?? 'System'}</span>
+                                            <span className="text-[10px] font-mono text-blue-600">@{log.user.userlogin}</span>
+                                        </div>
+                                    </TableCell>
+                                    <TableCell>
+                                        <span className="inline-flex items-center rounded-full bg-slate-900 px-2.5 py-0.5 text-[10px] font-black text-white uppercase tracking-tighter">
+                                            {log.action}
+                                        </span>
+                                    </TableCell>
+                                    <TableCell className="text-sm font-medium text-slate-700 max-w-md">
+                                        {log.details}
+                                    </TableCell>
                                 </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {logs.length === 0 ? (
-                                    <TableRow>
-                                        <TableCell colSpan={4} className="text-center h-24 text-muted-foreground">
-                                            No audit logs found.
-                                        </TableCell>
-                                    </TableRow>
-                                ) : (
-                                    logs.map((log) => (
-                                        <TableRow key={log.id}>
-                                            <TableCell className="font-mono text-xs text-muted-foreground">
-                                                {format(new Date(log.timestamp), "yyyy-MM-dd HH:mm:ss")}
-                                            </TableCell>
-                                            <TableCell>
-                                                <div className="flex flex-col">
-                                                    <span className="font-medium text-sm">{log.user.name}</span>
-                                                    <span className="text-xs text-muted-foreground">{log.user.userlogin}</span>
-                                                </div>
-                                            </TableCell>
-                                            <TableCell>
-                                                <span className="inline-flex items-center rounded-md bg-slate-100 px-2 py-1 text-xs font-medium text-slate-800 ring-1 ring-inset ring-slate-500/10">
-                                                    {log.action}
-                                                </span>
-                                            </TableCell>
-                                            <TableCell className="text-sm">{log.details}</TableCell>
-                                        </TableRow>
-                                    ))
-                                )}
-                            </TableBody>
-                        </Table>
-                    </div>
-                </CardContent>
-            </Card>
+                            ))
+                        )}
+                    </TableBody>
+                </Table>
+            </div>
+
         </div>
     )
 }
+

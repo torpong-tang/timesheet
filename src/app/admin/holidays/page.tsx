@@ -111,42 +111,60 @@ export default function HolidaysPage() {
     return (
         <div className="space-y-6">
             <div className="flex items-center justify-between">
-                <h1 className="text-3xl font-bold tracking-tight">Holiday Management</h1>
-                <Button onClick={handleAdd}>
+                <div>
+                    <h1 className="text-4xl font-black tracking-tight text-slate-900 mb-1">
+                        Public <span className="text-primary italic">Holidays</span>
+                    </h1>
+                    <p className="text-slate-500 font-medium">Define non-working days and annual company holidays</p>
+                </div>
+                <Button onClick={handleAdd} className="shadow-lg shadow-primary/25 bg-primary hover:bg-orange-600">
                     <Plus className="mr-2 h-4 w-4" />
                     Add Holiday
                 </Button>
             </div>
 
-            <div className="rounded-md border bg-white shadow-sm">
+            <div className="bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden">
                 <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead>Date</TableHead>
-                            <TableHead>Name</TableHead>
-                            <TableHead>Year</TableHead>
-                            <TableHead className="text-right">Actions</TableHead>
+                    <TableHeader className="bg-slate-50">
+                        <TableRow className="hover:bg-transparent border-slate-200">
+                            <TableHead className="font-bold text-slate-900">Holiday Date</TableHead>
+                            <TableHead className="font-bold text-slate-900">Description</TableHead>
+                            <TableHead className="font-bold text-slate-900">Year</TableHead>
+                            <TableHead className="text-right font-bold text-slate-900 px-6">Actions</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
                         {loading ? (
                             <TableRow>
-                                <TableCell colSpan={4} className="h-24 text-center">
-                                    <Loader2 className="mx-auto h-6 w-6 animate-spin text-muted-foreground" />
+                                <TableCell colSpan={4} className="h-48 text-center">
+                                    <div className="flex flex-col items-center gap-2">
+                                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                                        <p className="text-sm font-bold text-slate-400">Loading holidays...</p>
+                                    </div>
+                                </TableCell>
+                            </TableRow>
+                        ) : holidays.length === 0 ? (
+                            <TableRow>
+                                <TableCell colSpan={4} className="h-48 text-center">
+                                    <p className="text-slate-500 font-medium">No holidays defined yet.</p>
                                 </TableCell>
                             </TableRow>
                         ) : holidays.map((holiday) => (
-                            <TableRow key={holiday.id}>
-                                <TableCell className="font-medium">{format(new Date(holiday.date), 'dd MMM yyyy')}</TableCell>
-                                <TableCell>{holiday.name}</TableCell>
-                                <TableCell>{holiday.year}</TableCell>
-                                <TableCell className="text-right">
-                                    <Button variant="ghost" size="icon" onClick={() => handleEdit(holiday)}>
-                                        <Pencil className="h-4 w-4" />
-                                    </Button>
-                                    <Button variant="ghost" size="icon" className="text-red-500" onClick={() => handleDelete(holiday.id)}>
-                                        <Trash2 className="h-4 w-4" />
-                                    </Button>
+                            <TableRow key={holiday.id} className="hover:bg-slate-50 border-slate-100 transition-colors">
+                                <TableCell className="font-bold text-orange-600">
+                                    {format(new Date(holiday.date), 'dd MMM yyyy')}
+                                </TableCell>
+                                <TableCell className="font-bold text-slate-800">{holiday.name}</TableCell>
+                                <TableCell className="font-mono text-slate-500">{holiday.year}</TableCell>
+                                <TableCell className="text-right px-6">
+                                    <div className="flex justify-end gap-2">
+                                        <Button variant="ghost" size="icon" className="h-9 w-9 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-full" onClick={() => handleEdit(holiday)}>
+                                            <Pencil className="h-4 w-4" />
+                                        </Button>
+                                        <Button variant="ghost" size="icon" className="h-9 w-9 text-red-500 hover:text-red-600 hover:bg-red-50 rounded-full" onClick={() => handleDelete(holiday.id)}>
+                                            <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                    </div>
                                 </TableCell>
                             </TableRow>
                         ))}
@@ -154,52 +172,67 @@ export default function HolidaysPage() {
                 </Table>
             </div>
 
+
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>{editingId ? "Edit Holiday" : "Add New Holiday"}</DialogTitle>
+                <DialogContent className="sm:max-w-[450px] bg-white border-none shadow-2xl p-0 overflow-hidden">
+                    <DialogHeader className="p-6 bg-slate-50 border-b">
+                        <DialogTitle className="text-2xl font-black text-slate-900">
+                            {editingId ? "Edit Holiday Info" : "Register Holiday"}
+                        </DialogTitle>
                     </DialogHeader>
-                    <div className="grid gap-4 py-4">
+                    <div className="grid gap-6 p-6">
                         <div className="grid gap-2">
-                            <Label>Holiday Name</Label>
+                            <Label className="text-xs font-black uppercase text-slate-400">Holiday Name</Label>
                             <Input
                                 value={formData.name}
                                 onChange={e => setFormData({ ...formData, name: e.target.value })}
                                 placeholder="New Year's Day"
+                                className="bg-slate-50 border-slate-200"
                             />
                         </div>
-                        <div className="grid gap-2">
-                            <Label>Date</Label>
-                            <Input
-                                type="date"
-                                value={formData.date}
-                                onChange={e => {
-                                    const date = new Date(e.target.value)
-                                    setFormData({
-                                        ...formData,
-                                        date: e.target.value,
-                                        year: isNaN(date.getFullYear()) ? formData.year : date.getFullYear()
-                                    })
-                                }}
-                            />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label>Year</Label>
-                            <Input
-                                type="number"
-                                value={formData.year}
-                                onChange={e => setFormData({ ...formData, year: parseInt(e.target.value) })}
-                            />
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="grid gap-2">
+                                <Label className="text-xs font-black uppercase text-slate-400">Date</Label>
+                                <Input
+                                    type="date"
+                                    value={formData.date}
+                                    onChange={e => {
+                                        const date = new Date(e.target.value)
+                                        setFormData({
+                                            ...formData,
+                                            date: e.target.value,
+                                            year: isNaN(date.getFullYear()) ? formData.year : date.getFullYear()
+                                        })
+                                    }}
+                                    className="bg-slate-50 border-slate-200"
+                                />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label className="text-xs font-black uppercase text-slate-400">Year</Label>
+                                <Input
+                                    type="number"
+                                    value={isNaN(formData.year) ? "" : formData.year}
+                                    onChange={e => {
+                                        const val = e.target.value;
+                                        setFormData({ ...formData, year: val === "" ? new Date().getFullYear() : parseInt(val) });
+                                    }}
+                                    className="bg-slate-50 border-slate-200"
+                                />
+                            </div>
                         </div>
                     </div>
-                    <DialogFooter>
-                        <Button onClick={handleSave} disabled={saving}>
+                    <DialogFooter className="p-6 bg-slate-50 border-t gap-2 sm:gap-0">
+                        <Button variant="outline" onClick={() => setIsDialogOpen(false)} className="border-slate-300 font-bold">
+                            Cancel
+                        </Button>
+                        <Button onClick={handleSave} disabled={saving} className="bg-primary hover:bg-orange-600 text-white font-bold ml-2">
                             {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                            Save
+                            Save Holiday
                         </Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
+
         </div>
     )
 }
