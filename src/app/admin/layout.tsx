@@ -22,45 +22,57 @@ export default function AdminLayout({
     ]
 
     return (
-        <div className="flex min-h-screen bg-slate-50 dark:bg-slate-900">
+        <div className="flex min-h-screen">
             {/* Sidebar */}
-            <aside className="w-64 bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 fixed h-full z-10 hidden md:block">
-                <div className="p-6">
-                    <h2 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-orange-500 to-amber-600">
-                        Admin Portal
-                    </h2>
+            <aside className="w-64 bg-white border-r border-slate-200 fixed h-full z-10 hidden md:flex flex-col shadow-xl">
+                <div className="p-8">
+                    <div className="flex items-center gap-2 mb-2">
+                        <div className="w-8 h-8 rounded-lg bg-primary shadow-lg shadow-primary/30 flex items-center justify-center">
+                            <Calendar className="text-white h-5 w-5" />
+                        </div>
+                        <h2 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-orange-600">
+                            Admin Portal
+                        </h2>
+                    </div>
+                    <p className="text-[10px] uppercase tracking-widest text-slate-500 font-bold px-1">Management System</p>
                 </div>
-                <nav className="px-4 space-y-2">
-                    {navItems.map((item) => (
-                        <Link
-                            key={item.href}
-                            href={item.href}
-                            className={cn(
-                                "flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors",
-                                pathname.startsWith(item.href)
-                                    ? "bg-primary/10 text-primary font-bold"
-                                    : "text-slate-900 hover:bg-slate-100 dark:text-slate-100 dark:hover:bg-slate-700"
-                            )}
-                        >
-                            <item.icon className="h-5 w-5" />
-                            {item.label}
-                        </Link>
-                    ))}
+
+                <nav className="flex-1 px-4 space-y-1">
+                    {navItems.map((item) => {
+                        const isActive = pathname.startsWith(item.href)
+                        return (
+                            <Link
+                                key={item.href}
+                                href={item.href}
+                                className={cn(
+                                    "nav-link",
+                                    isActive ? "nav-link-active" : "nav-link-inactive"
+                                )}
+                            >
+                                <item.icon className={cn("h-5 w-5", isActive ? "text-white" : "text-primary")} />
+                                <span>{item.label}</span>
+                            </Link>
+                        )
+                    })}
                 </nav>
-                <div className="absolute bottom-8 left-0 w-full px-4">
+
+                <div className="p-6 mt-auto">
                     <Link href="/dashboard">
-                        <Button variant="outline" className="w-full">
-                            <ArrowLeft className="mr-2 h-4 w-4" />
-                            Back to Dashboard
+                        <Button variant="ghost" className="w-full justify-start text-slate-600 hover:text-primary hover:bg-white/50 group">
+                            <ArrowLeft className="mr-2 h-4 w-4 transition-transform group-hover:-translate-x-1" />
+                            Dashboard
                         </Button>
                     </Link>
                 </div>
             </aside>
 
             {/* Main Content */}
-            <main className="flex-1 md:ml-64 p-8">
-                {children}
+            <main className="flex-1 md:ml-64 p-8 min-h-screen">
+                <div className="max-w-7xl mx-auto">
+                    {children}
+                </div>
             </main>
         </div>
     )
 }
+
