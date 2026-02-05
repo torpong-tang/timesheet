@@ -85,7 +85,7 @@ export function UserNav() {
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative h-10 w-10 rounded-full hover:bg-white/20">
+                <Button variant="ghost" className="relative h-10 w-10 rounded-full hover:bg-slate-50/20">
                     <Avatar className="h-10 w-10 border-2 border-white shadow-sm">
                         <AvatarImage src={session?.user?.image || ""} alt={session?.user?.name || ""} />
                         <AvatarFallback className="bg-primary/20 text-primary font-bold">

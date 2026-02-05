@@ -46,7 +46,7 @@ export default function LoginPage() {
 
     return (
         <div className="flex min-h-screen w-full items-center justify-center p-4">
-            <Card className="w-full max-w-md bg-white border border-slate-200 shadow-2xl relative overflow-hidden rounded-3xl">
+            <Card className="w-full max-w-md bg-slate-50 border border-slate-200 shadow-2xl relative overflow-hidden rounded-3xl">
                 {/* Decorative blob */}
                 <div className="absolute -top-24 -right-24 w-48 h-48 bg-primary/20 blur-3xl rounded-full" />
                 <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-secondary/20 blur-3xl rounded-full" />
@@ -72,7 +72,7 @@ export default function LoginPage() {
                                 value={userlogin}
                                 onChange={(e) => setUserlogin(e.target.value)}
                                 required
-                                className="h-12 bg-white/60 border-white/40 focus:bg-white focus:border-primary transition-all rounded-xl shadow-inner font-medium"
+                                className="h-12 bg-slate-50/60 border-white/40 focus:bg-slate-50 focus:border-primary transition-all rounded-xl shadow-inner font-medium"
                             />
                         </div>
                         <div className="grid gap-2">
@@ -84,7 +84,7 @@ export default function LoginPage() {
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 required
-                                className="h-12 bg-white/60 border-white/40 focus:bg-white focus:border-primary transition-all rounded-xl shadow-inner font-medium"
+                                className="h-12 bg-slate-50/60 border-white/40 focus:bg-slate-50 focus:border-primary transition-all rounded-xl shadow-inner font-medium"
                             />
                         </div>
                     </CardContent>
