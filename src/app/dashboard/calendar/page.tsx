@@ -13,7 +13,7 @@ import { format, isWeekend, isSameDay, startOfMonth, endOfMonth, eachDayOfInterv
 import { getAssignedProjects, getTimesheetEntries, logTime, deleteEntry, TimesheetInput, getHolidays } from "@/app/actions"
 import { Project, TimesheetEntry, Holiday } from "@prisma/client"
 import { Trash2, Plus, Loader2, Calendar, ArrowLeft, ArrowRight } from "lucide-react"
-import { cn } from "@/lib/utils"
+import { cn, formatDuration } from "@/lib/utils"
 
 type TimesheetEntryWithProject = TimesheetEntry & {
     project: Project
@@ -104,7 +104,7 @@ export default function TimesheetCalendar() {
             for (const d of targetDates) {
                 const currentTotal = getDayTotal(d)
                 if (currentTotal + h > 7) {
-                    toast.error(`Cannot save: Exceeds 7h limit on ${format(d, "MMM d")}. (Already has ${currentTotal}h)`)
+                    toast.error(`Cannot save: Exceeds 7h limit on ${format(d, "dd/MM/yyyy")}. (Already has ${currentTotal}h)`)
                     setLoading(false)
                     return
                 }
@@ -169,7 +169,7 @@ export default function TimesheetCalendar() {
                         "px-3 py-1 rounded-full text-xs font-black transition-all",
                         total >= 7 ? "bg-green-500 text-white shadow-lg shadow-green-200" : "bg-primary text-white shadow-lg shadow-orange-200"
                     )}>
-                        {total}h
+                        {formatDuration(total)}
                     </div>
                 )}
             </div>
@@ -280,7 +280,7 @@ export default function TimesheetCalendar() {
                             <CardTitle className="flex justify-between items-center">
                                 <div className="flex flex-col">
                                     <span className="text-xs font-black text-primary uppercase tracking-[0.2em] mb-2 leading-none">Schedule</span>
-                                    <span className="text-2xl font-black text-slate-900 tracking-tight">{date ? format(date, 'MMM dd, yyyy') : 'Pick Date'}</span>
+                                    <span className="text-2xl font-black text-slate-900 tracking-tight">{date ? format(date, 'dd/MM/yyyy') : 'Pick Date'}</span>
                                 </div>
                                 {date && getDayTotal(date) < 7 && (
                                     <Button size="icon" className="h-12 w-12 rounded-2xl bg-primary shadow-xl shadow-primary/30 hover:scale-110 active:scale-95 transition-all" onClick={() => setIsDialogOpen(true)}>
@@ -297,7 +297,7 @@ export default function TimesheetCalendar() {
                                             {entry.project.code}
                                         </span>
                                         <div className="flex items-center gap-3">
-                                            <span className="text-2xl font-black text-primary">{entry.hours}h</span>
+                                            <span className="text-2xl font-black text-primary">{formatDuration(entry.hours)}</span>
                                             <Button variant="ghost" size="icon" className="h-10 w-10 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors" onClick={() => handleDelete(entry.id)}>
                                                 <Trash2 className="h-5 w-5" />
                                             </Button>
@@ -321,8 +321,8 @@ export default function TimesheetCalendar() {
                                     <div className="flex flex-col">
                                         <span className="text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Daily Progress</span>
                                         <span className="text-4xl font-black text-slate-900 tracking-tighter">
-                                            {getDayTotal(date)}
-                                            <span className="text-slate-300 text-lg ml-2 font-black uppercase">/ 7 hrs</span>
+                                            {formatDuration(getDayTotal(date))}
+                                            <span className="text-slate-300 text-lg ml-2 font-black uppercase">/ 7h (1d)</span>
                                         </span>
                                     </div>
                                     <div className={cn(
@@ -355,12 +355,12 @@ export default function TimesheetCalendar() {
                             <div>
                                 <DialogTitle className="text-3xl font-black text-slate-900 mb-1">Daily Log</DialogTitle>
                                 <DialogDescription className="text-slate-500 font-bold text-lg">
-                                    {date ? format(date, 'EEEE, dd MMMM yyyy') : ''}
+                                    {date ? format(date, 'EEEE, dd/MM/yyyy') : ''}
                                 </DialogDescription>
                             </div>
                             <div className="bg-primary/10 px-4 py-2 rounded-2xl flex flex-col items-center">
                                 <span className="text-[10px] font-black text-primary uppercase">Total Hours</span>
-                                <span className="text-2xl font-black text-primary">{date ? getDayTotal(date) : 0} / 7</span>
+                                <span className="text-2xl font-black text-primary">{date ? formatDuration(getDayTotal(date)) : 0} / 7h</span>
                             </div>
                         </div>
                     </DialogHeader>
@@ -376,7 +376,7 @@ export default function TimesheetCalendar() {
                                             <span className="text-[10px] font-black text-blue-600 bg-blue-50 px-2 py-0.5 rounded uppercase">
                                                 {entry.project.code}
                                             </span>
-                                            <span className="font-black text-primary">{entry.hours}h</span>
+                                            <span className="font-black text-primary">{formatDuration(entry.hours)}</span>
                                         </div>
                                         <p className="text-sm text-slate-600 font-medium line-clamp-2">{entry.description}</p>
                                         <Button
