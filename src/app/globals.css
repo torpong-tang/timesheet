@@ -1,35 +1,41 @@
 @import "tailwindcss";
 
 @theme {
-  --color-background: #94a3b8;
-  /* Strong Grey (Slate 400) */
-  --color-foreground: #020617;
+  --color-background: #e2e8f0;
+  /* Slate 200 */
+  --color-foreground: #0f172a;
+  /* Slate 900 */
 
-  --color-card: #ffffff;
-  --color-card-foreground: #020617;
+  --color-card: #f8fafc;
+  /* Slate 50 */
+  --color-card-foreground: #0f172a;
 
-  --color-popover: #ffffff;
-  --color-popover-foreground: #020617;
+  --color-popover: #f8fafc;
+  --color-popover-foreground: #0f172a;
 
   --color-primary: #f97316;
-  /* Fixed Orange 500 */
+  /* Orange 500 */
   --color-primary-foreground: #ffffff;
 
   --color-secondary: #3b82f6;
-  /* Fixed Blue 500 */
+  /* Blue 500 */
   --color-secondary-foreground: #ffffff;
 
-  --color-muted: #f1f5f9;
+  --color-muted: #cbd5e1;
+  /* Slate 300 */
   --color-muted-foreground: #475569;
+  /* Slate 600 */
 
-  --color-accent: #f1f5f9;
+  --color-accent: #cbd5e1;
+  /* Slate 300 */
   --color-accent-foreground: #0f172a;
 
   --color-destructive: #ef4444;
   --color-destructive-foreground: #ffffff;
 
-  --color-border: #e2e8f0;
-  --color-input: #e2e8f0;
+  --color-border: #cbd5e1;
+  /* Slate 300 */
+  --color-input: #cbd5e1;
   --color-ring: #f97316;
 
   --radius-lg: 0.75rem;
@@ -41,8 +47,6 @@
   --radius: 0.75rem;
 }
 
-
-
 @layer base {
   * {
     border-color: hsl(var(--border));
@@ -51,11 +55,11 @@
   body {
     background-color: hsl(var(--background));
     color: hsl(var(--foreground));
-    /* Vivid Vibrant Gradient */
+    /* Medium Grey Gradient */
     background:
-      radial-gradient(circle at 10% 20%, rgba(255, 140, 0, 0.15) 0%, transparent 40%),
-      radial-gradient(circle at 90% 80%, rgba(0, 119, 255, 0.15) 0%, transparent 40%),
-      linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+      radial-gradient(circle at 10% 20%, rgba(255, 140, 0, 0.05) 0%, transparent 40%),
+      radial-gradient(circle at 90% 80%, rgba(0, 119, 255, 0.05) 0%, transparent 40%),
+      linear-gradient(135deg, #e2e8f0 0%, #f1f5f9 100%);
     min-height: 100vh;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   }

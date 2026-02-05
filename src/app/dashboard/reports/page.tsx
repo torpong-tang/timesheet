@@ -242,7 +242,7 @@ export default function ReportsPage() {
     }
 
     const SortIcon = ({ column }: { column: string }) => {
-        if (sortConfig?.key !== column) return <ArrowUpDown className="ml-2 h-3 w-3 inline text-slate-300" />
+        if (sortConfig?.key !== column) return <ArrowUpDown className="ml-2 h-3 w-3 inline text-slate-600" />
         return sortConfig.direction === 'asc' ?
             <ArrowUp className="ml-2 h-3 w-3 inline text-primary" /> :
             <ArrowDown className="ml-2 h-3 w-3 inline text-primary" />
@@ -286,15 +286,15 @@ export default function ReportsPage() {
             </div>
 
             {/* Controls Bar */}
-            <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-xl space-y-6">
+            <div className="bg-slate-50 p-6 rounded-3xl border border-slate-200 shadow-xl space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-6 items-end">
                     <div className="grid gap-2">
-                        <Label className="text-xs font-black uppercase text-slate-400">Month</Label>
+                        <Label className="text-xs font-black uppercase text-slate-500">Month</Label>
                         <Input
                             type="month"
                             value={month}
                             onChange={(e) => setMonth(e.target.value)}
-                            className="h-11 bg-slate-50 border-slate-200 rounded-xl font-bold"
+                            className="h-11 bg-slate-100 border-slate-200 rounded-xl font-bold"
                         />
                     </div>
                     <div className="md:col-span-3 flex justify-end">
@@ -308,9 +308,9 @@ export default function ReportsPage() {
                     <div className="grid grid-cols-1 md:grid-cols-12 gap-4 border-t border-slate-100 pt-6 animate-in slide-in-from-top-2">
                         {/* Filters */}
                         <div className="md:col-span-3 grid gap-2">
-                            <Label className="text-xs font-black uppercase text-slate-400">User</Label>
+                            <Label className="text-xs font-black uppercase text-slate-500">User</Label>
                             <Select value={selectedUser} onValueChange={(v) => { setSelectedUser(v); setPage(1); }}>
-                                <SelectTrigger className="h-10 bg-slate-50 border-slate-200 rounded-xl">
+                                <SelectTrigger className="h-10 bg-slate-100 border-slate-200 rounded-xl">
                                     <SelectValue placeholder="All Users" />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -322,9 +322,9 @@ export default function ReportsPage() {
                             </Select>
                         </div>
                         <div className="md:col-span-3 grid gap-2">
-                            <Label className="text-xs font-black uppercase text-slate-400">Project</Label>
+                            <Label className="text-xs font-black uppercase text-slate-500">Project</Label>
                             <Select value={selectedProject} onValueChange={(v) => { setSelectedProject(v); setPage(1); }}>
-                                <SelectTrigger className="h-10 bg-slate-50 border-slate-200 rounded-xl">
+                                <SelectTrigger className="h-10 bg-slate-100 border-slate-200 rounded-xl">
                                     <SelectValue placeholder="All Projects" />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -338,14 +338,14 @@ export default function ReportsPage() {
 
                         {/* Search */}
                         <div className="md:col-span-6 grid gap-2">
-                            <Label className="text-xs font-black uppercase text-slate-400">Quick Find</Label>
+                            <Label className="text-xs font-black uppercase text-slate-500">Quick Find</Label>
                             <div className="relative">
-                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
                                 <Input
                                     placeholder="Type to search description, user, or project..."
                                     value={searchQuery}
                                     onChange={e => { setSearchQuery(e.target.value); setPage(1); }}
-                                    className="pl-9 h-10 bg-yellow-50/50 border-yellow-200 text-slate-900 placeholder:text-slate-400 rounded-xl focus-visible:ring-yellow-400"
+                                    className="pl-9 h-10 bg-yellow-50/50 border-yellow-200 text-slate-900 placeholder:text-slate-500 rounded-xl focus-visible:ring-yellow-400"
                                 />
                             </div>
                         </div>
@@ -354,15 +354,15 @@ export default function ReportsPage() {
             </div>
 
             {hasSearched && (
-                <div className="rounded-3xl border border-slate-200 bg-white shadow-xl overflow-hidden flex flex-col">
+                <div className="rounded-3xl border border-slate-200 bg-slate-50 shadow-xl overflow-hidden flex flex-col">
                     {/* Summary Row & Tabs */}
-                    <div className="bg-slate-50 border-b border-slate-100 p-4 flex flex-col md:flex-row justify-between items-center gap-4">
+                    <div className="bg-slate-100 border-b border-slate-100 p-4 flex flex-col md:flex-row justify-between items-center gap-4">
                         <div className="flex items-center gap-2 p-1 bg-slate-200/50 rounded-xl">
                             <Button
                                 variant={viewMode === 'daily' ? 'default' : 'ghost'}
                                 size="sm"
                                 onClick={() => { setViewMode('daily'); setPage(1); }}
-                                className={cn("rounded-lg text-xs font-bold", viewMode === 'daily' && "bg-white text-primary shadow-sm")}
+                                className={cn("rounded-lg text-xs font-bold", viewMode === 'daily' && "bg-slate-50 text-primary shadow-sm")}
                             >
                                 <LayoutList className="mr-2 h-3.5 w-3.5" />
                                 Daily Logs
@@ -371,7 +371,7 @@ export default function ReportsPage() {
                                 variant={viewMode === 'summary' ? 'default' : 'ghost'}
                                 size="sm"
                                 onClick={() => { setViewMode('summary'); setPage(1); }}
-                                className={cn("rounded-lg text-xs font-bold", viewMode === 'summary' && "bg-white text-primary shadow-sm")}
+                                className={cn("rounded-lg text-xs font-bold", viewMode === 'summary' && "bg-slate-50 text-primary shadow-sm")}
                             >
                                 <Grip className="mr-2 h-3.5 w-3.5" />
                                 Summary by Project
@@ -379,10 +379,10 @@ export default function ReportsPage() {
                         </div>
 
                         <div className="flex items-center gap-4">
-                            <span className="text-xs font-black uppercase text-slate-400 tracking-widest hidden md:inline">
+                            <span className="text-xs font-black uppercase text-slate-500 tracking-widest hidden md:inline">
                                 {viewMode === 'daily' ? `Found ${processedData.length} records` : `Found ${summaryData.length} groups`}
                             </span>
-                            <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-xl border border-slate-200 shadow-sm">
+                            <div className="flex items-center gap-2 bg-slate-50 px-4 py-2 rounded-xl border border-slate-200 shadow-sm">
                                 <span className="text-xs font-bold text-slate-500 uppercase">Total Hours</span>
                                 <span className="text-xl font-black text-primary">{formatDuration(totalHours)}</span>
                             </div>
@@ -392,7 +392,7 @@ export default function ReportsPage() {
                     <div className="overflow-x-auto">
                         <Table>
                             <TableHeader>
-                                <TableRow className="hover:bg-transparent bg-slate-50/50">
+                                <TableRow className="hover:bg-transparent bg-slate-100/50">
                                     {viewMode === 'daily' ? (
                                         <>
                                             <TableHead className="w-[150px] cursor-pointer hover:text-primary transition-colors" onClick={() => handleSort('date')}>
@@ -432,14 +432,14 @@ export default function ReportsPage() {
                             <TableBody>
                                 {paginatedData.length === 0 ? (
                                     <TableRow>
-                                        <TableCell colSpan={viewMode === 'daily' ? 5 : 4} className="h-32 text-center text-slate-400 font-medium italic">
+                                        <TableCell colSpan={viewMode === 'daily' ? 5 : 4} className="h-32 text-center text-slate-500 font-medium italic">
                                             No matching records found.
                                         </TableCell>
                                     </TableRow>
                                 ) : (
                                     paginatedData.map((entry, idx) => (
                                         viewMode === 'daily' ? (
-                                            <TableRow key={entry.id} className="hover:bg-slate-50 transition-colors border-slate-100">
+                                            <TableRow key={entry.id} className="hover:bg-slate-100 transition-colors border-slate-100">
                                                 <TableCell className="font-mono text-xs font-bold text-slate-500">
                                                     {format(new Date((entry as any).date), 'dd/MM/yyyy')}
                                                 </TableCell>
@@ -448,7 +448,7 @@ export default function ReportsPage() {
                                                         <span className="font-bold text-slate-900 text-sm">
                                                             <HighlightText text={entry.user.name} highlight={searchQuery} />
                                                         </span>
-                                                        <span className="text-[10px] text-slate-400 font-mono">@{entry.user.userlogin}</span>
+                                                        <span className="text-[10px] text-slate-500 font-mono">@{entry.user.userlogin}</span>
                                                     </div>
                                                 </TableCell>
                                                 <TableCell>
@@ -456,7 +456,7 @@ export default function ReportsPage() {
                                                         <span className="font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded w-fit text-xs mb-0.5">
                                                             <HighlightText text={entry.project.code} highlight={searchQuery} />
                                                         </span>
-                                                        <span className="text-[10px] text-slate-400 truncate max-w-[150px]">{entry.project.name}</span>
+                                                        <span className="text-[10px] text-slate-500 truncate max-w-[150px]">{entry.project.name}</span>
                                                     </div>
                                                 </TableCell>
                                                 <TableCell className="text-sm text-slate-700 font-medium">
@@ -467,13 +467,13 @@ export default function ReportsPage() {
                                                 </TableCell>
                                             </TableRow>
                                         ) : (
-                                            <TableRow key={(entry as any).id} className="hover:bg-slate-50 transition-colors border-slate-100">
+                                            <TableRow key={(entry as any).id} className="hover:bg-slate-100 transition-colors border-slate-100">
                                                 <TableCell>
                                                     <div className="flex flex-col">
                                                         <span className="font-bold text-slate-900 text-sm">
                                                             <HighlightText text={entry.user.name} highlight={searchQuery} />
                                                         </span>
-                                                        <span className="text-[10px] text-slate-400 font-mono">@{entry.user.userlogin}</span>
+                                                        <span className="text-[10px] text-slate-500 font-mono">@{entry.user.userlogin}</span>
                                                     </div>
                                                 </TableCell>
                                                 <TableCell>
@@ -498,11 +498,11 @@ export default function ReportsPage() {
                     </div>
 
                     {/* Pagination */}
-                    <div className="bg-white border-t border-slate-100 p-4 flex flex-col sm:flex-row justify-between items-center gap-4">
+                    <div className="bg-slate-50 border-t border-slate-100 p-4 flex flex-col sm:flex-row justify-between items-center gap-4">
                         <div className="flex items-center gap-2">
-                            <span className="text-xs font-bold text-slate-400">Rows per page</span>
+                            <span className="text-xs font-bold text-slate-500">Rows per page</span>
                             <Select value={pageSize.toString()} onValueChange={(v) => { setPageSize(Number(v)); setPage(1); }}>
-                                <SelectTrigger className="h-8 w-[70px] bg-slate-50 border-slate-200 rounded-lg text-xs font-bold">
+                                <SelectTrigger className="h-8 w-[70px] bg-slate-100 border-slate-200 rounded-lg text-xs font-bold">
                                     <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -524,7 +524,7 @@ export default function ReportsPage() {
 
                             <div className="flex items-center gap-1 px-2">
                                 <span className="text-xs font-black text-slate-900">Page {page}</span>
-                                <span className="text-xs font-medium text-slate-400">of {totalPages || 1}</span>
+                                <span className="text-xs font-medium text-slate-500">of {totalPages || 1}</span>
                             </div>
 
                             <Button variant="outline" size="icon" className="h-8 w-8 rounded-lg" disabled={page >= totalPages} onClick={() => setPage(p => p + 1)}>

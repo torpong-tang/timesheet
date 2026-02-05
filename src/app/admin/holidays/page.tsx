@@ -124,7 +124,7 @@ export default function HolidaysPage() {
     }
 
     const SortIcon = ({ column }: { column: keyof Holiday }) => {
-        if (sortConfig?.key !== column) return <ArrowUpDown className="ml-2 h-3 w-3 inline text-slate-300" />
+        if (sortConfig?.key !== column) return <ArrowUpDown className="ml-2 h-3 w-3 inline text-slate-600" />
         return sortConfig.direction === 'asc' ?
             <ArrowUp className="ml-2 h-3 w-3 inline text-primary" /> :
             <ArrowDown className="ml-2 h-3 w-3 inline text-primary" />
@@ -202,20 +202,20 @@ export default function HolidaysPage() {
                 </Button>
             </div>
 
-            <div className="bg-white border border-slate-200 rounded-3xl shadow-xl overflow-hidden flex flex-col">
+            <div className="bg-slate-50 border border-slate-200 rounded-3xl shadow-xl overflow-hidden flex flex-col">
                 {/* Controls */}
                 <div className="p-6 border-b border-slate-100 grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
                         <Input
                             placeholder="Search holidays..."
                             value={searchQuery}
                             onChange={e => { setSearchQuery(e.target.value); setPage(1); }}
-                            className="pl-9 h-11 bg-slate-50 border-slate-200 rounded-xl"
+                            className="pl-9 h-11 bg-slate-100 border-slate-200 rounded-xl"
                         />
                     </div>
                     <div className="flex justify-end items-center gap-4">
-                        <span className="text-xs font-black uppercase text-slate-400 tracking-widest hidden md:inline">
+                        <span className="text-xs font-black uppercase text-slate-500 tracking-widest hidden md:inline">
                             Total {processedHolidays.length} Holidays
                         </span>
                     </div>
@@ -224,7 +224,7 @@ export default function HolidaysPage() {
                 {/* Table */}
                 <div className="overflow-x-auto">
                     <Table>
-                        <TableHeader className="bg-slate-50/50">
+                        <TableHeader className="bg-slate-100/50">
                             <TableRow className="hover:bg-transparent border-slate-200">
                                 <TableHead className="font-bold text-slate-900 cursor-pointer hover:text-primary transition-colors" onClick={() => handleSort('date')}>
                                     Holiday Date <SortIcon column="date" />
@@ -244,18 +244,18 @@ export default function HolidaysPage() {
                                     <TableCell colSpan={4} className="h-48 text-center">
                                         <div className="flex flex-col items-center gap-2">
                                             <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                                            <p className="text-sm font-bold text-slate-400">Loading holidays...</p>
+                                            <p className="text-sm font-bold text-slate-500">Loading holidays...</p>
                                         </div>
                                     </TableCell>
                                 </TableRow>
                             ) : paginatedHolidays.length === 0 ? (
                                 <TableRow>
-                                    <TableCell colSpan={4} className="h-32 text-center text-slate-400 font-medium italic">
+                                    <TableCell colSpan={4} className="h-32 text-center text-slate-500 font-medium italic">
                                         No matching holidays found.
                                     </TableCell>
                                 </TableRow>
                             ) : paginatedHolidays.map((holiday) => (
-                                <TableRow key={holiday.id} className="hover:bg-slate-50 border-slate-50 transition-colors">
+                                <TableRow key={holiday.id} className="hover:bg-slate-100 border-slate-50 transition-colors">
                                     <TableCell className="font-bold text-orange-600">
                                         {format(new Date(holiday.date), 'dd MMM yyyy')}
                                     </TableCell>
@@ -282,11 +282,11 @@ export default function HolidaysPage() {
                 </div>
 
                 {/* Pagination */}
-                <div className="bg-white border-t border-slate-100 p-4 flex flex-col sm:flex-row justify-between items-center gap-4">
+                <div className="bg-slate-50 border-t border-slate-100 p-4 flex flex-col sm:flex-row justify-between items-center gap-4">
                     <div className="flex items-center gap-2">
-                        <span className="text-xs font-bold text-slate-400">Rows per page</span>
+                        <span className="text-xs font-bold text-slate-500">Rows per page</span>
                         <Select value={pageSize.toString()} onValueChange={(v) => { setPageSize(Number(v)); setPage(1); }}>
-                            <SelectTrigger className="h-8 w-[70px] bg-slate-50 border-slate-200 rounded-lg text-xs font-bold">
+                            <SelectTrigger className="h-8 w-[70px] bg-slate-100 border-slate-200 rounded-lg text-xs font-bold">
                                 <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
@@ -308,7 +308,7 @@ export default function HolidaysPage() {
 
                         <div className="flex items-center gap-1 px-2">
                             <span className="text-xs font-black text-slate-900">Page {page}</span>
-                            <span className="text-xs font-medium text-slate-400">of {totalPages || 1}</span>
+                            <span className="text-xs font-medium text-slate-500">of {totalPages || 1}</span>
                         </div>
 
                         <Button variant="outline" size="icon" className="h-8 w-8 rounded-lg" disabled={page >= totalPages} onClick={() => setPage(p => p + 1)}>
@@ -323,25 +323,25 @@ export default function HolidaysPage() {
 
 
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                <DialogContent className="sm:max-w-[450px] bg-white border-none shadow-2xl p-0 overflow-hidden">
-                    <DialogHeader className="p-6 bg-slate-50 border-b">
+                <DialogContent className="sm:max-w-[450px] bg-slate-50 border-none shadow-2xl p-0 overflow-hidden">
+                    <DialogHeader className="p-6 bg-slate-100 border-b">
                         <DialogTitle className="text-2xl font-black text-slate-900">
                             {editingId ? "Edit Holiday Info" : "Register Holiday"}
                         </DialogTitle>
                     </DialogHeader>
                     <div className="grid gap-6 p-6">
                         <div className="grid gap-2">
-                            <Label className="text-xs font-black uppercase text-slate-400">Holiday Name</Label>
+                            <Label className="text-xs font-black uppercase text-slate-500">Holiday Name</Label>
                             <Input
                                 value={formData.name}
                                 onChange={e => setFormData({ ...formData, name: e.target.value })}
                                 placeholder="New Year's Day"
-                                className="bg-slate-50 border-slate-200"
+                                className="bg-slate-100 border-slate-200"
                             />
                         </div>
                         <div className="grid grid-cols-2 gap-4">
                             <div className="grid gap-2">
-                                <Label className="text-xs font-black uppercase text-slate-400">Date</Label>
+                                <Label className="text-xs font-black uppercase text-slate-500">Date</Label>
                                 <Input
                                     type="date"
                                     value={formData.date}
@@ -353,11 +353,11 @@ export default function HolidaysPage() {
                                             year: isNaN(date.getFullYear()) ? formData.year : date.getFullYear()
                                         })
                                     }}
-                                    className="bg-slate-50 border-slate-200"
+                                    className="bg-slate-100 border-slate-200"
                                 />
                             </div>
                             <div className="grid gap-2">
-                                <Label className="text-xs font-black uppercase text-slate-400">Year</Label>
+                                <Label className="text-xs font-black uppercase text-slate-500">Year</Label>
                                 <Input
                                     type="number"
                                     value={isNaN(formData.year) ? "" : formData.year}
@@ -365,12 +365,12 @@ export default function HolidaysPage() {
                                         const val = e.target.value;
                                         setFormData({ ...formData, year: val === "" ? new Date().getFullYear() : parseInt(val) });
                                     }}
-                                    className="bg-slate-50 border-slate-200"
+                                    className="bg-slate-100 border-slate-200"
                                 />
                             </div>
                         </div>
                     </div>
-                    <DialogFooter className="p-6 bg-slate-50 border-t gap-2 sm:gap-0">
+                    <DialogFooter className="p-6 bg-slate-100 border-t gap-2 sm:gap-0">
                         <Button variant="outline" onClick={() => setIsDialogOpen(false)} className="border-slate-300 font-bold">
                             Cancel
                         </Button>

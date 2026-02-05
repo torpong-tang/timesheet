@@ -7,7 +7,7 @@ export default function DashboardLayout({
 }) {
     return (
         <div className="flex-col md:flex min-h-screen">
-            <div className="border-b bg-white/40 backdrop-blur-md sticky top-0 z-50">
+            <div className="border-b bg-slate-50/40 backdrop-blur-md sticky top-0 z-50">
                 <div className="flex h-16 items-center px-4 container mx-auto">
                     <div className="mr-8 font-extrabold text-2xl tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-amber-600">
                         Timesheet

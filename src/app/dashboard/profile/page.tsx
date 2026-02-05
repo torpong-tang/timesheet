@@ -82,7 +82,7 @@ export default function ProfilePage() {
                 </CardHeader>
                 <CardContent className="flex flex-col items-center gap-4">
                     <div className="relative group cursor-pointer">
-                        <Avatar className="h-32 w-32 border-4 border-slate-100 dark:border-slate-800 shadow-lg">
+                        <Avatar className="h-32 w-32 border-4 border-slate-100 dark:border-slate-200 shadow-lg">
                             <AvatarImage src={session?.user?.image || ""} className="object-cover" />
                             <AvatarFallback className="text-4xl bg-primary/20 text-primary">
                                 {session?.user?.name?.charAt(0) || "U"}

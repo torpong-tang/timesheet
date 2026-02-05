@@ -128,7 +128,7 @@ export default function UsersPage() {
     }
 
     const SortIcon = ({ column }: { column: keyof User }) => {
-        if (sortConfig?.key !== column) return <ArrowUpDown className="ml-2 h-3 w-3 inline text-slate-300" />
+        if (sortConfig?.key !== column) return <ArrowUpDown className="ml-2 h-3 w-3 inline text-slate-600" />
         return sortConfig.direction === 'asc' ?
             <ArrowUp className="ml-2 h-3 w-3 inline text-primary" /> :
             <ArrowDown className="ml-2 h-3 w-3 inline text-primary" />
@@ -205,20 +205,20 @@ export default function UsersPage() {
                 </Button>
             </div>
 
-            <div className="bg-white border border-slate-200 rounded-3xl shadow-xl overflow-hidden flex flex-col">
+            <div className="bg-slate-50 border border-slate-200 rounded-3xl shadow-xl overflow-hidden flex flex-col">
                 {/* Controls */}
                 <div className="p-6 border-b border-slate-100 grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
                         <Input
                             placeholder="Search users..."
                             value={searchQuery}
                             onChange={e => { setSearchQuery(e.target.value); setPage(1); }}
-                            className="pl-9 h-11 bg-slate-50 border-slate-200 rounded-xl"
+                            className="pl-9 h-11 bg-slate-100 border-slate-200 rounded-xl"
                         />
                     </div>
                     <div className="flex justify-end items-center gap-4">
-                        <span className="text-xs font-black uppercase text-slate-400 tracking-widest hidden md:inline">
+                        <span className="text-xs font-black uppercase text-slate-500 tracking-widest hidden md:inline">
                             Total {processedUsers.length} Users
                         </span>
                     </div>
@@ -227,7 +227,7 @@ export default function UsersPage() {
                 {/* Table */}
                 <div className="overflow-x-auto">
                     <Table>
-                        <TableHeader className="bg-slate-50/50">
+                        <TableHeader className="bg-slate-100/50">
                             <TableRow className="hover:bg-transparent border-slate-100">
                                 <TableHead className="font-bold text-slate-900 cursor-pointer hover:text-primary transition-colors" onClick={() => handleSort('name')}>
                                     User <SortIcon column="name" />
@@ -247,18 +247,18 @@ export default function UsersPage() {
                                     <TableCell colSpan={4} className="h-48 text-center">
                                         <div className="flex flex-col items-center gap-2">
                                             <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                                            <p className="text-sm font-bold text-slate-400">Fetching team...</p>
+                                            <p className="text-sm font-bold text-slate-500">Fetching team...</p>
                                         </div>
                                     </TableCell>
                                 </TableRow>
                             ) : paginatedUsers.length === 0 ? (
                                 <TableRow>
-                                    <TableCell colSpan={4} className="h-32 text-center text-slate-400 font-medium italic">
+                                    <TableCell colSpan={4} className="h-32 text-center text-slate-500 font-medium italic">
                                         No matching users found.
                                     </TableCell>
                                 </TableRow>
                             ) : paginatedUsers.map((user) => (
-                                <TableRow key={user.id} className="hover:bg-slate-50 border-slate-50 transition-colors">
+                                <TableRow key={user.id} className="hover:bg-slate-100 border-slate-50 transition-colors">
                                     <TableCell>
                                         <div className="flex flex-col">
                                             <span className="font-bold text-slate-900">
@@ -298,11 +298,11 @@ export default function UsersPage() {
                 </div>
 
                 {/* Pagination */}
-                <div className="bg-white border-t border-slate-100 p-4 flex flex-col sm:flex-row justify-between items-center gap-4">
+                <div className="bg-slate-50 border-t border-slate-100 p-4 flex flex-col sm:flex-row justify-between items-center gap-4">
                     <div className="flex items-center gap-2">
-                        <span className="text-xs font-bold text-slate-400">Rows per page</span>
+                        <span className="text-xs font-bold text-slate-500">Rows per page</span>
                         <Select value={pageSize.toString()} onValueChange={(v) => { setPageSize(Number(v)); setPage(1); }}>
-                            <SelectTrigger className="h-8 w-[70px] bg-slate-50 border-slate-200 rounded-lg text-xs font-bold">
+                            <SelectTrigger className="h-8 w-[70px] bg-slate-100 border-slate-200 rounded-lg text-xs font-bold">
                                 <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
@@ -324,7 +324,7 @@ export default function UsersPage() {
 
                         <div className="flex items-center gap-1 px-2">
                             <span className="text-xs font-black text-slate-900">Page {page}</span>
-                            <span className="text-xs font-medium text-slate-400">of {totalPages || 1}</span>
+                            <span className="text-xs font-medium text-slate-500">of {totalPages || 1}</span>
                         </div>
 
                         <Button variant="outline" size="icon" className="h-8 w-8 rounded-lg" disabled={page >= totalPages} onClick={() => setPage(p => p + 1)}>
@@ -339,8 +339,8 @@ export default function UsersPage() {
 
 
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                <DialogContent className="sm:max-w-[500px] bg-white border-none shadow-2xl p-0 overflow-hidden">
-                    <DialogHeader className="p-6 bg-slate-50 border-b">
+                <DialogContent className="sm:max-w-[500px] bg-slate-50 border-none shadow-2xl p-0 overflow-hidden">
+                    <DialogHeader className="p-6 bg-slate-100 border-b">
                         <DialogTitle className="text-2xl font-black text-slate-900">
                             {editingId ? "Edit User Account" : "Register New Member"}
                         </DialogTitle>
@@ -348,18 +348,18 @@ export default function UsersPage() {
                     <div className="grid gap-6 p-6">
                         <div className="grid grid-cols-2 gap-4">
                             <div className="grid gap-2">
-                                <Label className="text-xs font-black uppercase text-slate-400">User Login</Label>
+                                <Label className="text-xs font-black uppercase text-slate-500">User Login</Label>
                                 <Input
                                     value={formData.userlogin}
                                     onChange={e => setFormData({ ...formData, userlogin: e.target.value })}
                                     placeholder="Torpong.T"
-                                    className="bg-slate-50 border-slate-200"
+                                    className="bg-slate-100 border-slate-200"
                                 />
                             </div>
                             <div className="grid gap-2">
-                                <Label className="text-xs font-black uppercase text-slate-400">Role</Label>
+                                <Label className="text-xs font-black uppercase text-slate-500">Role</Label>
                                 <Select value={formData.role} onValueChange={v => setFormData({ ...formData, role: v })}>
-                                    <SelectTrigger className="bg-slate-50 border-slate-200">
+                                    <SelectTrigger className="bg-slate-100 border-slate-200">
                                         <SelectValue />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -372,35 +372,35 @@ export default function UsersPage() {
                             </div>
                         </div>
                         <div className="grid gap-2">
-                            <Label className="text-xs font-black uppercase text-slate-400">Full Name</Label>
+                            <Label className="text-xs font-black uppercase text-slate-500">Full Name</Label>
                             <Input
                                 value={formData.name}
                                 onChange={e => setFormData({ ...formData, name: e.target.value })}
                                 placeholder="Torpong T."
-                                className="bg-slate-50 border-slate-200"
+                                className="bg-slate-100 border-slate-200"
                             />
                         </div>
                         <div className="grid gap-2">
-                            <Label className="text-xs font-black uppercase text-slate-400">Email Address</Label>
+                            <Label className="text-xs font-black uppercase text-slate-500">Email Address</Label>
                             <Input
                                 value={formData.email}
                                 onChange={e => setFormData({ ...formData, email: e.target.value })}
                                 placeholder="torpong@example.com"
-                                className="bg-slate-50 border-slate-200"
+                                className="bg-slate-100 border-slate-200"
                             />
                         </div>
                         <div className="grid gap-2">
-                            <Label className="text-xs font-black uppercase text-slate-400">Password {editingId && "(Optional)"}</Label>
+                            <Label className="text-xs font-black uppercase text-slate-500">Password {editingId && "(Optional)"}</Label>
                             <Input
                                 value={formData.password}
                                 onChange={e => setFormData({ ...formData, password: e.target.value })}
                                 type="password"
                                 placeholder="******"
-                                className="bg-slate-50 border-slate-200"
+                                className="bg-slate-100 border-slate-200"
                             />
                         </div>
                     </div>
-                    <DialogFooter className="p-6 bg-slate-50 border-t gap-2 sm:gap-0">
+                    <DialogFooter className="p-6 bg-slate-100 border-t gap-2 sm:gap-0">
                         <Button variant="outline" onClick={() => setIsDialogOpen(false)} className="border-slate-300 font-bold">
                             Cancel
                         </Button>

@@ -61,12 +61,12 @@ export default function DashboardPage() {
             {/* Key Metrics Grid */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {/* Total Hours Card */}
-                <Card className="bg-white border-slate-200 shadow-xl rounded-3xl overflow-hidden relative">
+                <Card className="bg-slate-50 border-slate-200 shadow-xl rounded-3xl overflow-hidden relative">
                     <div className="absolute top-0 right-0 p-4 opacity-5">
                         <Clock className="w-32 h-32 text-primary" />
                     </div>
                     <CardHeader className="pb-2">
-                        <CardTitle className="text-sm font-black text-slate-400 uppercase tracking-widest">
+                        <CardTitle className="text-sm font-black text-slate-500 uppercase tracking-widest">
                             {isManager ? "Team Hours (This Month)" : "My Hours (This Month)"}
                         </CardTitle>
                     </CardHeader>
@@ -74,7 +74,7 @@ export default function DashboardPage() {
                         <div className="text-4xl font-black text-slate-900 tracking-tight mb-2">
                             {formatDuration(stats.totalHoursMonth)}
                         </div>
-                        <div className={cn("flex items-center text-sm font-bold gap-1", growth >= 0 ? "text-green-600" : "text-red-500")}>
+                        <div className={cn("flex items-center text-sm font-bold gap-1", growth >= 0 ? "text-green-400" : "text-red-500")}>
                             {growth >= 0 ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
                             {Math.abs(Number(growthPercent))}% from last month
                         </div>
@@ -82,12 +82,12 @@ export default function DashboardPage() {
                 </Card>
 
                 {/* Active Projects Card */}
-                <Card className="bg-white border-slate-200 shadow-xl rounded-3xl overflow-hidden relative">
+                <Card className="bg-slate-50 border-slate-200 shadow-xl rounded-3xl overflow-hidden relative">
                     <div className="absolute top-0 right-0 p-4 opacity-5">
                         <Briefcase className="w-32 h-32 text-blue-600" />
                     </div>
                     <CardHeader className="pb-2">
-                        <CardTitle className="text-sm font-black text-slate-400 uppercase tracking-widest">
+                        <CardTitle className="text-sm font-black text-slate-500 uppercase tracking-widest">
                             Active Projects
                         </CardTitle>
                     </CardHeader>
@@ -117,7 +117,7 @@ export default function DashboardPage() {
                         </div>
                         <div className="w-full bg-black/20 rounded-full h-2 mt-2">
                             <div
-                                className="bg-white rounded-full h-2 transition-all"
+                                className="bg-slate-50 rounded-full h-2 transition-all"
                                 style={{ width: `${Math.min(((stats.totalHoursMonth / 20) / 8) * 100, 100)}%` }} // Assuming 20 working days so far
                             />
                         </div>
@@ -130,8 +130,8 @@ export default function DashboardPage() {
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 {/* Top Projects List */}
-                <Card className="bg-white border-slate-200 shadow-xl rounded-3xl overflow-hidden">
-                    <CardHeader className="bg-slate-50/50 border-b border-slate-100">
+                <Card className="bg-slate-50 border-slate-200 shadow-xl rounded-3xl overflow-hidden">
+                    <CardHeader className="bg-slate-100/50 border-b border-slate-100">
                         <CardTitle className="text-lg font-black text-slate-900 flex items-center gap-2">
                             <Briefcase className="w-5 h-5 text-primary" />
                             Top Projects
@@ -141,7 +141,7 @@ export default function DashboardPage() {
                     <CardContent className="p-0">
                         <div className="flex flex-col">
                             {stats.topProjects.map((proj, i) => (
-                                <div key={i} className="flex items-center justify-between p-6 border-b border-slate-50 last:border-none hover:bg-slate-50 transition-colors">
+                                <div key={i} className="flex items-center justify-between p-6 border-b border-slate-50 last:border-none hover:bg-slate-100 transition-colors">
                                     <div className="flex flex-col gap-1">
                                         <span className="font-bold text-slate-900">{proj.name}</span>
                                         <span className="text-[10px] font-black uppercase text-blue-600 bg-blue-50 px-2 py-0.5 rounded w-fit">
@@ -151,21 +151,21 @@ export default function DashboardPage() {
                                     <div className="flex items-center gap-4">
                                         <div className="text-right">
                                             <span className="block font-black text-lg text-slate-900">{formatDuration(proj.hours)}</span>
-                                            <span className="text-xs text-slate-400 font-bold">LOGGED</span>
+                                            <span className="text-xs text-slate-500 font-bold">LOGGED</span>
                                         </div>
                                     </div>
                                 </div>
                             ))}
                             {stats.topProjects.length === 0 && (
-                                <div className="p-10 text-center text-slate-400 font-medium italic">No activity recorded yet.</div>
+                                <div className="p-10 text-center text-slate-500 font-medium italic">No activity recorded yet.</div>
                             )}
                         </div>
                     </CardContent>
                 </Card>
 
                 {/* Recent Activity Log */}
-                <Card className="bg-white border-slate-200 shadow-xl rounded-3xl overflow-hidden">
-                    <CardHeader className="bg-slate-50/50 border-b border-slate-100">
+                <Card className="bg-slate-50 border-slate-200 shadow-xl rounded-3xl overflow-hidden">
+                    <CardHeader className="bg-slate-100/50 border-b border-slate-100">
                         <CardTitle className="text-lg font-black text-slate-900 flex items-center gap-2">
                             <Calendar className="w-5 h-5 text-primary" />
                             Recent Activity
@@ -175,9 +175,9 @@ export default function DashboardPage() {
                     <CardContent className="p-0">
                         <div className="flex flex-col">
                             {stats.recentActivity.map((log) => (
-                                <div key={log.id} className="flex items-start gap-4 p-6 border-b border-slate-50 last:border-none hover:bg-slate-50 transition-colors">
+                                <div key={log.id} className="flex items-start gap-4 p-6 border-b border-slate-50 last:border-none hover:bg-slate-100 transition-colors">
                                     <div className="min-w-[4rem] text-center">
-                                        <span className="block text-xs font-black text-slate-400 uppercase tracking-wider">{format(new Date(log.date), "MMM")}</span>
+                                        <span className="block text-xs font-black text-slate-500 uppercase tracking-wider">{format(new Date(log.date), "MMM")}</span>
                                         <span className="block text-xl font-black text-slate-900 leading-none">{format(new Date(log.date), "dd/MM/yyyy")}</span>
                                     </div>
                                     <div className="flex-1">
@@ -192,7 +192,7 @@ export default function DashboardPage() {
                                 </div>
                             ))}
                             {stats.recentActivity.length === 0 && (
-                                <div className="p-10 text-center text-slate-400 font-medium italic">No recent logs.</div>
+                                <div className="p-10 text-center text-slate-500 font-medium italic">No recent logs.</div>
                             )}
                         </div>
                     </CardContent>

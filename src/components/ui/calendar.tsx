@@ -208,7 +208,7 @@ function CalendarDayButton({
       data-range-end={modifiers.range_end}
       data-range-middle={modifiers.range_middle}
       className={cn(
-        "data-[selected-single=true]:bg-primary data-[selected-single=true]:text-primary-foreground flex w-full h-full flex-col items-center justify-center gap-1 p-2 transition-all rounded-[1.5rem] hover:bg-slate-100",
+        "data-[selected-single=true]:bg-primary data-[selected-single=true]:text-primary-foreground flex w-full h-full flex-col items-center justify-center gap-1 p-2 transition-all rounded-[1.5rem] hover:bg-slate-200",
         modifiers.today && "bg-amber-50 text-amber-900 border-2 border-amber-200",
         modifiers.outside && "opacity-20",
         className

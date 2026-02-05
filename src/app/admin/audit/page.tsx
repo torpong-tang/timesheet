@@ -143,7 +143,7 @@ export default function AuditPage() {
     }
 
     const SortIcon = ({ column }: { column: string }) => {
-        if (sortConfig?.key !== column) return <ArrowUpDown className="ml-2 h-3 w-3 inline text-slate-300" />
+        if (sortConfig?.key !== column) return <ArrowUpDown className="ml-2 h-3 w-3 inline text-slate-600" />
         return sortConfig.direction === 'asc' ?
             <ArrowUp className="ml-2 h-3 w-3 inline text-primary" /> :
             <ArrowDown className="ml-2 h-3 w-3 inline text-primary" />
@@ -167,26 +167,26 @@ export default function AuditPage() {
                     </h1>
                     <p className="text-slate-500 font-medium">Track security events and administrative actions</p>
                 </div>
-                <div className="p-3 bg-white rounded-2xl flex items-center gap-2 border border-slate-200 shadow-sm">
+                <div className="p-3 bg-slate-50 rounded-2xl flex items-center gap-2 border border-slate-200 shadow-sm">
                     <ShieldAlert className="h-5 w-5 text-primary" />
                     <span className="text-xs font-black text-slate-700 uppercase tracking-widest">Protected Activity</span>
                 </div>
             </div>
 
-            <div className="bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden flex flex-col">
+            <div className="bg-slate-50 border border-slate-200 rounded-2xl shadow-xl overflow-hidden flex flex-col">
                 {/* Controls */}
                 <div className="p-6 border-b border-slate-100 grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
                         <Input
                             placeholder="Search logs..."
                             value={searchQuery}
                             onChange={e => { setSearchQuery(e.target.value); setPage(1); }}
-                            className="pl-9 h-11 bg-slate-50 border-slate-200 rounded-xl"
+                            className="pl-9 h-11 bg-slate-100 border-slate-200 rounded-xl"
                         />
                     </div>
                     <div className="flex justify-end items-center gap-4">
-                        <span className="text-xs font-black uppercase text-slate-400 tracking-widest hidden md:inline">
+                        <span className="text-xs font-black uppercase text-slate-500 tracking-widest hidden md:inline">
                             Total {processedLogs.length} Events
                         </span>
                     </div>
@@ -195,7 +195,7 @@ export default function AuditPage() {
                 {/* Table */}
                 <div className="overflow-x-auto">
                     <Table>
-                        <TableHeader className="bg-slate-50/50">
+                        <TableHeader className="bg-slate-100/50">
                             <TableRow className="hover:bg-transparent border-slate-200">
                                 <TableHead className="font-bold text-slate-900 cursor-pointer hover:text-primary transition-colors" onClick={() => handleSort('timestamp')}>
                                     Timestamp <SortIcon column="timestamp" />
@@ -214,13 +214,13 @@ export default function AuditPage() {
                         <TableBody>
                             {paginatedLogs.length === 0 ? (
                                 <TableRow>
-                                    <TableCell colSpan={4} className="h-32 text-center text-slate-400 font-medium italic">
+                                    <TableCell colSpan={4} className="h-32 text-center text-slate-500 font-medium italic">
                                         No matching logs found.
                                     </TableCell>
                                 </TableRow>
                             ) : (
                                 paginatedLogs.map((log) => (
-                                    <TableRow key={log.id} className="hover:bg-slate-50 border-slate-100 transition-colors">
+                                    <TableRow key={log.id} className="hover:bg-slate-100 border-slate-100 transition-colors">
                                         <TableCell className="font-mono text-[10px] text-slate-500 font-bold">
                                             {format(new Date(log.timestamp), "dd MMM yyyy")}
                                             <br />
@@ -237,7 +237,7 @@ export default function AuditPage() {
                                             </div>
                                         </TableCell>
                                         <TableCell>
-                                            <span className="inline-flex items-center rounded-full bg-slate-900 px-2.5 py-0.5 text-[10px] font-black text-white uppercase tracking-tighter">
+                                            <span className="inline-flex items-center rounded-full bg-slate-50 px-2.5 py-0.5 text-[10px] font-black text-white uppercase tracking-tighter">
                                                 <HighlightText text={log.action} highlight={searchQuery} />
                                             </span>
                                         </TableCell>
@@ -252,11 +252,11 @@ export default function AuditPage() {
                 </div>
 
                 {/* Pagination */}
-                <div className="bg-white border-t border-slate-100 p-4 flex flex-col sm:flex-row justify-between items-center gap-4">
+                <div className="bg-slate-50 border-t border-slate-100 p-4 flex flex-col sm:flex-row justify-between items-center gap-4">
                     <div className="flex items-center gap-2">
-                        <span className="text-xs font-bold text-slate-400">Rows per page</span>
+                        <span className="text-xs font-bold text-slate-500">Rows per page</span>
                         <Select value={pageSize.toString()} onValueChange={(v) => { setPageSize(Number(v)); setPage(1); }}>
-                            <SelectTrigger className="h-8 w-[70px] bg-slate-50 border-slate-200 rounded-lg text-xs font-bold">
+                            <SelectTrigger className="h-8 w-[70px] bg-slate-100 border-slate-200 rounded-lg text-xs font-bold">
                                 <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
@@ -278,7 +278,7 @@ export default function AuditPage() {
 
                         <div className="flex items-center gap-1 px-2">
                             <span className="text-xs font-black text-slate-900">Page {page}</span>
-                            <span className="text-xs font-medium text-slate-400">of {totalPages || 1}</span>
+                            <span className="text-xs font-medium text-slate-500">of {totalPages || 1}</span>
                         </div>
 
                         <Button variant="outline" size="icon" className="h-8 w-8 rounded-lg" disabled={page >= totalPages} onClick={() => setPage(p => p + 1)}>

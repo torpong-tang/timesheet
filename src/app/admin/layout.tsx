@@ -24,7 +24,7 @@ export default function AdminLayout({
     return (
         <div className="flex min-h-screen">
             {/* Sidebar */}
-            <aside className="w-64 bg-white border-r border-slate-200 fixed h-full z-10 hidden md:flex flex-col shadow-xl">
+            <aside className="w-64 bg-slate-50 border-r border-slate-200 fixed h-full z-10 hidden md:flex flex-col shadow-xl">
                 <div className="p-8">
                     <div className="flex items-center gap-2 mb-2">
                         <div className="w-8 h-8 rounded-lg bg-primary shadow-lg shadow-primary/30 flex items-center justify-center">
@@ -58,7 +58,7 @@ export default function AdminLayout({
 
                 <div className="p-6 mt-auto">
                     <Link href="/dashboard">
-                        <Button variant="ghost" className="w-full justify-start text-slate-600 hover:text-primary hover:bg-white/50 group">
+                        <Button variant="ghost" className="w-full justify-start text-slate-600 hover:text-primary hover:bg-slate-50/50 group">
                             <ArrowLeft className="mr-2 h-4 w-4 transition-transform group-hover:-translate-x-1" />
                             Dashboard
                         </Button>
