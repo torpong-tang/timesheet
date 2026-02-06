@@ -101,28 +101,38 @@ export default function DashboardPage() {
                     </CardContent>
                 </Card>
 
-                {/* Status/Efficiency Card (Placeholder logic) */}
+                {/* Monthly Progress / Completion Card */}
                 <Card className="bg-gradient-to-br from-primary to-orange-600 text-white border-none shadow-xl shadow-orange-200 rounded-3xl overflow-hidden relative">
                     <div className="absolute top-0 right-0 p-4 opacity-20">
                         <Activity className="w-32 h-32 text-white" />
                     </div>
                     <CardHeader className="pb-2">
                         <CardTitle className="text-sm font-black text-white/80 uppercase tracking-widest">
-                            Work Intensity
+                            Monthly Capacity
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div className="text-5xl font-black text-white tracking-tight mb-2">
-                            {(stats.totalHoursMonth / 20).toFixed(1)} <span className="text-lg opacity-80 font-medium">h/day (avg)</span>
+                        <div className="flex items-baseline gap-2 mb-2">
+                            <span className="text-5xl font-black text-white tracking-tight">
+                                {formatDuration(stats.totalHoursMonth)}
+                            </span>
+                            <span className="text-xl text-white/70 font-bold">
+                                / {stats.workableHoursMonth}h
+                            </span>
                         </div>
-                        <div className="w-full bg-black/20 rounded-full h-2 mt-2">
+
+                        <div className="w-full bg-black/20 rounded-full h-3 mt-2 mb-3">
                             <div
-                                className="bg-slate-50 rounded-full h-2 transition-all"
-                                style={{ width: `${Math.min(((stats.totalHoursMonth / 20) / 8) * 100, 100)}%` }} // Assuming 20 working days so far
+                                className="bg-white rounded-full h-3 transition-all duration-1000"
+                                style={{ width: `${Math.min((stats.totalHoursMonth / stats.workableHoursMonth) * 100, 100)}%` }}
                             />
                         </div>
-                        <p className="text-white/80 font-medium text-xs mt-2">
-                            Based on estimated working days
+
+                        <p className="text-white font-bold text-sm flex justify-between">
+                            <span>{((stats.totalHoursMonth / stats.workableHoursMonth) * 100).toFixed(0)}% Complete</span>
+                            <span className="opacity-80">
+                                {Math.max(stats.workableHoursMonth - stats.totalHoursMonth, 0).toFixed(1)}h Remaining
+                            </span>
                         </p>
                     </CardContent>
                 </Card>

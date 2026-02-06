@@ -3,7 +3,7 @@
 import { prisma } from "@/lib/prisma"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
-import { startOfMonth, endOfMonth, subMonths, format } from "date-fns"
+import { startOfMonth, endOfMonth, subMonths, format, eachDayOfInterval, isWeekend, isSameDay } from "date-fns"
 
 export type DashboardStats = {
     totalHoursMonth: number
@@ -11,6 +11,7 @@ export type DashboardStats = {
     topProjects: { name: string; code: string; hours: number }[]
     recentActivity: { id: string; project: string; date: Date; hours: number; description: string }[]
     projectStatus?: { id: string; name: string; code: string; budget: number; usedBudget: number; usedHours: number }[]
+    workableHoursMonth: number
 }
 
 export async function getDashboardStats(): Promise<DashboardStats> {
@@ -59,6 +60,22 @@ export async function getDashboardStats(): Promise<DashboardStats> {
         select: { hours: true }
     })
     const totalHoursPrevMonth = prevEntries.reduce((sum, e) => sum + e.hours, 0)
+
+    // B2. Workable Hours (Current Month)
+    // (Days in Month - Weekends - Holidays) * 7
+    const holidays = await prisma.holiday.findMany({
+        where: {
+            date: { gte: startMonth, lte: endMonth }
+        }
+    })
+
+    const allDays = eachDayOfInterval({ start: startMonth, end: endMonth })
+    const workingDays = allDays.filter(day => {
+        const isWknd = isWeekend(day)
+        const isHoli = holidays.some(h => isSameDay(h.date, day))
+        return !isWknd && !isHoli
+    })
+    const workableHoursMonth = workingDays.length * 7
 
     // C. Top Projects (by hours this month)
     const projectHours: Record<string, number> = {}
@@ -146,6 +163,7 @@ export async function getDashboardStats(): Promise<DashboardStats> {
         totalHoursPrevMonth,
         topProjects,
         recentActivity,
-        projectStatus
+        projectStatus,
+        workableHoursMonth
     }
 }
