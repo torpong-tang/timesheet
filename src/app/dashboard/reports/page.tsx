@@ -21,10 +21,11 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { toast } from "sonner"
-import { Loader2, Download, Search, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, ArrowUpDown, ArrowUp, ArrowDown, LayoutList, Grip } from "lucide-react"
+import { Loader2, Download, Search, ArrowUpDown, ArrowUp, ArrowDown, LayoutList, Grip } from "lucide-react"
 import { format } from "date-fns"
 import { useSession } from "next-auth/react"
 import { cn, formatDuration } from "@/lib/utils"
+import { Pagination } from "@/components/Pagination"
 
 // Helper to highlight text
 const HighlightText = ({ text, highlight }: { text: string, highlight: string }) => {
@@ -72,7 +73,7 @@ export default function ReportsPage() {
         const projects = new Map<string, { id: string, code: string }>()
 
         rawData.forEach(item => {
-            users.set(item.user.userlogin, { id: item.user.userlogin, name: item.user.name })
+            users.set(item.user.userlogin, { id: item.user.userlogin, name: item.user.name || item.user.userlogin })
             projects.set(item.projectId, { id: item.projectId, code: item.project.code })
         })
 
@@ -117,7 +118,7 @@ export default function ReportsPage() {
             const lowerQ = searchQuery.toLowerCase()
             data = data.filter(item =>
                 item.description.toLowerCase().includes(lowerQ) ||
-                item.user.name.toLowerCase().includes(lowerQ) ||
+                (item.user.name || "").toLowerCase().includes(lowerQ) ||
                 item.project.code.toLowerCase().includes(lowerQ) ||
                 item.project.name.toLowerCase().includes(lowerQ)
             )
@@ -165,8 +166,8 @@ export default function ReportsPage() {
 
                 // Handle nested keys safely
                 if (sortConfig.key === 'user.name') {
-                    aVal = a.user.name
-                    bVal = b.user.name
+                    aVal = a.user.name || ""
+                    bVal = b.user.name || ""
                 } else if (sortConfig.key === 'project.code') {
                     aVal = a.project.code
                     bVal = b.project.code
@@ -218,7 +219,7 @@ export default function ReportsPage() {
 
         const users = Array.from(new Set(uData.map(d => JSON.stringify({ id: d.user.userlogin, name: d.user.name }))))
             .map(s => JSON.parse(s))
-            .sort((a: any, b: any) => a.name.localeCompare(b.name))
+            .sort((a: any, b: any) => (a.name || "").localeCompare(b.name || ""))
 
         const projects = Array.from(new Set(pData.map(d => JSON.stringify({ id: d.project.code, code: d.project.code, name: d.project.name }))))
             .map(s => JSON.parse(s))
@@ -514,26 +515,11 @@ export default function ReportsPage() {
                             </Select>
                         </div>
 
-                        <div className="flex items-center gap-1">
-                            <Button variant="outline" size="icon" className="h-8 w-8 rounded-lg" disabled={page === 1} onClick={() => setPage(1)}>
-                                <ChevronsLeft className="h-4 w-4" />
-                            </Button>
-                            <Button variant="outline" size="icon" className="h-8 w-8 rounded-lg" disabled={page === 1} onClick={() => setPage(p => p - 1)}>
-                                <ChevronLeft className="h-4 w-4" />
-                            </Button>
-
-                            <div className="flex items-center gap-1 px-2">
-                                <span className="text-xs font-black text-slate-900">Page {page}</span>
-                                <span className="text-xs font-medium text-slate-500">of {totalPages || 1}</span>
-                            </div>
-
-                            <Button variant="outline" size="icon" className="h-8 w-8 rounded-lg" disabled={page >= totalPages} onClick={() => setPage(p => p + 1)}>
-                                <ChevronRight className="h-4 w-4" />
-                            </Button>
-                            <Button variant="outline" size="icon" className="h-8 w-8 rounded-lg" disabled={page >= totalPages} onClick={() => setPage(totalPages)}>
-                                <ChevronsRight className="h-4 w-4" />
-                            </Button>
-                        </div>
+                        <Pagination
+                            currentPage={page}
+                            totalPages={totalPages}
+                            onPageChange={setPage}
+                        />
                     </div>
                 </div>
             )}

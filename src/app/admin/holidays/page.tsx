@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo } from "react"
 import { getHolidays, upsertHoliday, deleteHoliday } from "@/app/admin-actions"
 import { Holiday } from "@prisma/client"
+import { Pagination } from "@/components/Pagination"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -29,7 +30,7 @@ import {
     SelectValue,
 } from "@/components/ui/select"
 import { toast } from "sonner"
-import { Loader2, Plus, Pencil, Trash2, Search, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react"
+import { Loader2, Plus, Pencil, Trash2, Search, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react"
 import { format } from "date-fns"
 
 // Helper to highlight text
@@ -298,26 +299,11 @@ export default function HolidaysPage() {
                         </Select>
                     </div>
 
-                    <div className="flex items-center gap-1">
-                        <Button variant="outline" size="icon" className="h-8 w-8 rounded-lg" disabled={page === 1} onClick={() => setPage(1)}>
-                            <ChevronsLeft className="h-4 w-4" />
-                        </Button>
-                        <Button variant="outline" size="icon" className="h-8 w-8 rounded-lg" disabled={page === 1} onClick={() => setPage(p => p - 1)}>
-                            <ChevronLeft className="h-4 w-4" />
-                        </Button>
-
-                        <div className="flex items-center gap-1 px-2">
-                            <span className="text-xs font-black text-slate-900">Page {page}</span>
-                            <span className="text-xs font-medium text-slate-500">of {totalPages || 1}</span>
-                        </div>
-
-                        <Button variant="outline" size="icon" className="h-8 w-8 rounded-lg" disabled={page >= totalPages} onClick={() => setPage(p => p + 1)}>
-                            <ChevronRight className="h-4 w-4" />
-                        </Button>
-                        <Button variant="outline" size="icon" className="h-8 w-8 rounded-lg" disabled={page >= totalPages} onClick={() => setPage(totalPages)}>
-                            <ChevronsRight className="h-4 w-4" />
-                        </Button>
-                    </div>
+                    <Pagination
+                        currentPage={page}
+                        totalPages={totalPages}
+                        onPageChange={setPage}
+                    />
                 </div>
             </div>
 

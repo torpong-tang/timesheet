@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo } from "react"
 import { getUsers, upsertUser, deleteUser } from "@/app/admin-actions"
 import { User } from "@prisma/client"
+import { Pagination } from "@/components/Pagination"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -29,7 +30,7 @@ import {
     SelectValue,
 } from "@/components/ui/select"
 import { toast } from "sonner"
-import { Loader2, Plus, Pencil, Trash2, Search, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react"
+import { Loader2, Plus, Pencil, Trash2, Search, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react"
 
 // Helper to highlight text
 const HighlightText = ({ text, highlight }: { text: string, highlight: string }) => {
@@ -67,7 +68,8 @@ export default function UsersPage() {
         name: "",
         email: "",
         role: "DEV",
-        password: ""
+        password: "",
+        status: "Enable"
     })
 
     const loadUsers = async () => {
@@ -144,6 +146,7 @@ export default function UsersPage() {
             name: user.name ?? "",
             email: user.email,
             role: user.role,
+            status: (user as any).status || "Enable",
             password: "" // Don't fill password on edit
         })
         setIsDialogOpen(true)
@@ -156,6 +159,7 @@ export default function UsersPage() {
             name: "",
             email: "",
             role: "DEV",
+            status: "Enable",
             password: ""
         })
         setIsDialogOpen(true)
@@ -229,8 +233,11 @@ export default function UsersPage() {
                     <Table>
                         <TableHeader className="bg-slate-100/50">
                             <TableRow className="hover:bg-transparent border-slate-100">
+                                <TableHead className="font-bold text-slate-900 cursor-pointer hover:text-primary transition-colors" onClick={() => handleSort('userlogin')}>
+                                    User Login <SortIcon column="userlogin" />
+                                </TableHead>
                                 <TableHead className="font-bold text-slate-900 cursor-pointer hover:text-primary transition-colors" onClick={() => handleSort('name')}>
-                                    User <SortIcon column="name" />
+                                    Name <SortIcon column="name" />
                                 </TableHead>
                                 <TableHead className="font-bold text-slate-900 cursor-pointer hover:text-primary transition-colors" onClick={() => handleSort('email')}>
                                     Contact Info <SortIcon column="email" />
@@ -238,13 +245,16 @@ export default function UsersPage() {
                                 <TableHead className="font-bold text-slate-900 cursor-pointer hover:text-primary transition-colors" onClick={() => handleSort('role')}>
                                     Role <SortIcon column="role" />
                                 </TableHead>
+                                <TableHead className="font-bold text-slate-900">
+                                    Status
+                                </TableHead>
                                 <TableHead className="text-right font-bold text-slate-900 px-6">Actions</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
                             {loading ? (
                                 <TableRow>
-                                    <TableCell colSpan={4} className="h-48 text-center">
+                                    <TableCell colSpan={6} className="h-48 text-center">
                                         <div className="flex flex-col items-center gap-2">
                                             <Loader2 className="h-8 w-8 animate-spin text-primary" />
                                             <p className="text-sm font-bold text-slate-500">Fetching team...</p>
@@ -253,21 +263,21 @@ export default function UsersPage() {
                                 </TableRow>
                             ) : paginatedUsers.length === 0 ? (
                                 <TableRow>
-                                    <TableCell colSpan={4} className="h-32 text-center text-slate-500 font-medium italic">
+                                    <TableCell colSpan={6} className="h-32 text-center text-slate-500 font-medium italic">
                                         No matching users found.
                                     </TableCell>
                                 </TableRow>
                             ) : paginatedUsers.map((user) => (
                                 <TableRow key={user.id} className="hover:bg-slate-100 border-slate-50 transition-colors">
                                     <TableCell>
-                                        <div className="flex flex-col">
-                                            <span className="font-bold text-slate-900">
-                                                <HighlightText text={user.name || ""} highlight={searchQuery} />
-                                            </span>
-                                            <span className="text-xs font-mono text-primary">
-                                                @<HighlightText text={user.userlogin} highlight={searchQuery} />
-                                            </span>
-                                        </div>
+                                        <span className="font-bold text-slate-900">
+                                            <HighlightText text={user.userlogin} highlight={searchQuery} />
+                                        </span>
+                                    </TableCell>
+                                    <TableCell>
+                                        <span className="text-slate-600 font-medium">
+                                            <HighlightText text={user.name || "-"} highlight={searchQuery} />
+                                        </span>
                                     </TableCell>
                                     <TableCell className="text-slate-600 font-medium">
                                         <HighlightText text={user.email} highlight={searchQuery} />
@@ -279,6 +289,11 @@ export default function UsersPage() {
                                                     'bg-green-50 text-green-700 ring-green-600/20'
                                             }`}>
                                             <HighlightText text={user.role} highlight={searchQuery} />
+                                        </span>
+                                    </TableCell>
+                                    <TableCell>
+                                        <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-bold ring-1 ring-inset ${(user as any).status === 'Disable' ? 'bg-slate-100 text-slate-600 ring-slate-500/10' : 'bg-emerald-50 text-emerald-700 ring-emerald-600/20'}`}>
+                                            {(user as any).status || "Enable"}
                                         </span>
                                     </TableCell>
                                     <TableCell className="text-right px-6">
@@ -314,26 +329,11 @@ export default function UsersPage() {
                         </Select>
                     </div>
 
-                    <div className="flex items-center gap-1">
-                        <Button variant="outline" size="icon" className="h-8 w-8 rounded-lg" disabled={page === 1} onClick={() => setPage(1)}>
-                            <ChevronsLeft className="h-4 w-4" />
-                        </Button>
-                        <Button variant="outline" size="icon" className="h-8 w-8 rounded-lg" disabled={page === 1} onClick={() => setPage(p => p - 1)}>
-                            <ChevronLeft className="h-4 w-4" />
-                        </Button>
-
-                        <div className="flex items-center gap-1 px-2">
-                            <span className="text-xs font-black text-slate-900">Page {page}</span>
-                            <span className="text-xs font-medium text-slate-500">of {totalPages || 1}</span>
-                        </div>
-
-                        <Button variant="outline" size="icon" className="h-8 w-8 rounded-lg" disabled={page >= totalPages} onClick={() => setPage(p => p + 1)}>
-                            <ChevronRight className="h-4 w-4" />
-                        </Button>
-                        <Button variant="outline" size="icon" className="h-8 w-8 rounded-lg" disabled={page >= totalPages} onClick={() => setPage(totalPages)}>
-                            <ChevronsRight className="h-4 w-4" />
-                        </Button>
-                    </div>
+                    <Pagination
+                        currentPage={page}
+                        totalPages={totalPages}
+                        onPageChange={setPage}
+                    />
                 </div>
             </div>
 
@@ -367,6 +367,20 @@ export default function UsersPage() {
                                         <SelectItem value="PM">Project Manager</SelectItem>
                                         <SelectItem value="GM">General Manager</SelectItem>
                                         <SelectItem value="ADMIN">Admin</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="grid gap-2">
+                                <Label className="text-xs font-black uppercase text-slate-500">Status</Label>
+                                <Select value={formData.status} onValueChange={v => setFormData({ ...formData, status: v })}>
+                                    <SelectTrigger className="bg-slate-100 border-slate-200">
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="Enable">Enable</SelectItem>
+                                        <SelectItem value="Disable">Disable</SelectItem>
                                     </SelectContent>
                                 </Select>
                             </div>

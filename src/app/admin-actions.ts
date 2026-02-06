@@ -20,7 +20,7 @@ export async function getUsers() {
     })
 }
 
-export async function upsertUser(data: { id?: string, userlogin: string, name: string, email: string, role: Role, password?: string }) {
+export async function upsertUser(data: { id?: string, userlogin: string, name: string, email: string, role: Role, password?: string, status: string }) {
     const session = await getServerSession(authOptions)
     if (session?.user.role !== 'ADMIN') throw new Error("Unauthorized")
 
@@ -30,7 +30,8 @@ export async function upsertUser(data: { id?: string, userlogin: string, name: s
             userlogin: data.userlogin,
             name: data.name,
             email: data.email,
-            role: data.role
+            role: data.role,
+            status: data.status
         }
         if (data.password) {
             updateData.password = await bcrypt.hash(data.password, 10)
@@ -39,7 +40,7 @@ export async function upsertUser(data: { id?: string, userlogin: string, name: s
             where: { id: data.id },
             data: updateData
         })
-        await logAudit("UPDATE_USER", session.user.id, `Updated user ${data.userlogin} (${data.id})`)
+        await logAudit("UPDATE_USER", session.user.id, `Updated user ${data.userlogin} (${data.id}) status:${data.status}`)
     } else {
         // Create
         if (!data.password) throw new Error("Password is required for new users")
@@ -50,6 +51,7 @@ export async function upsertUser(data: { id?: string, userlogin: string, name: s
                 name: data.name,
                 email: data.email,
                 role: data.role,
+                status: data.status || "Enable",
                 password: hashedPassword
             }
         })
