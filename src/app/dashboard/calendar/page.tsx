@@ -10,9 +10,9 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { toast } from "sonner"
 import { format, isWeekend, isSameDay, startOfMonth, endOfMonth, eachDayOfInterval, addMonths, subMonths, endOfWeek, addDays } from "date-fns"
-import { getAssignedProjects, getTimesheetEntries, logTime, deleteEntry, TimesheetInput, getHolidays } from "@/app/actions"
+import { getAssignedProjects, getTimesheetEntries, deleteEntry, updateEntry, TimesheetInput, getHolidays, logRecurringTime } from "@/app/actions"
 import { Project, TimesheetEntry, Holiday } from "@prisma/client"
-import { Trash2, Plus, Loader2, Calendar, ArrowLeft, ArrowRight } from "lucide-react"
+import { Trash2, Plus, Loader2, Calendar, ArrowLeft, ArrowRight, Pencil } from "lucide-react"
 import { cn, formatDuration } from "@/lib/utils"
 
 type TimesheetEntryWithProject = TimesheetEntry & {
@@ -34,6 +34,7 @@ export default function TimesheetCalendar() {
     const [hours, setHours] = useState("1.0")
     const [description, setDescription] = useState("")
     const [recurringType, setRecurringType] = useState<string>("none")
+    const [editingId, setEditingId] = useState<string | null>(null)
 
     useEffect(() => {
         fetchData()
@@ -54,13 +55,28 @@ export default function TimesheetCalendar() {
         }
     }
 
-    const handleDayClick = (day: Date) => {
-        setDate(day)
-        // setIsDialogOpen(true) - Removed to prevent auto-open
-        // Reset form
+    const resetForm = () => {
         setSelectedProject("")
         setHours("1.0")
         setDescription("")
+        setRecurringType("none")
+        setEditingId(null)
+    }
+
+    const handleDayClick = (day: Date) => {
+        setDate(day)
+        resetForm()
+    }
+
+    const handleEdit = (entry: TimesheetEntryWithProject) => {
+        // Although the main view is set, let's ensure we are on the right date context or just open dialog
+        // Since the list shows entries for the 'date' state, we are already there.
+        setEditingId(entry.id)
+        setSelectedProject(entry.projectId)
+        setHours(entry.hours.toString())
+        setDescription(entry.description)
+        setRecurringType("none") // Editing is single entry only
+        setIsDialogOpen(true)
     }
 
     const handleSave = async () => {
@@ -74,65 +90,56 @@ export default function TimesheetCalendar() {
 
         setLoading(true)
         try {
-            // Calculate target dates
-            const targetDates: Date[] = []
-            let endDate = date
+            if (editingId) {
+                // UPDATE MODE
+                await updateEntry(editingId, {
+                    hours: h,
+                    description: description
+                })
+                toast.success("Entry updated")
+            } else {
+                // CREATE MODE (including recurring)
+                const targetDates: Date[] = []
+                let endDate = date
 
-            if (recurringType === "weekly") {
-                endDate = endOfWeek(date, { weekStartsOn: 1 })
-            } else if (recurringType === "monthly") {
-                endDate = endOfMonth(date)
-            }
-
-            // Generate dates
-            let currentCursor = date
-            while (currentCursor <= endDate) {
-                // Skip weekends and holidays
-                if (!isWeekend(currentCursor) && !isHoliday(currentCursor)) {
-                    targetDates.push(currentCursor)
+                if (recurringType === "weekly") {
+                    endDate = endOfWeek(date, { weekStartsOn: 1 })
+                } else if (recurringType === "monthly") {
+                    endDate = endOfMonth(date)
                 }
-                currentCursor = addDays(currentCursor, 1)
-            }
 
-            if (targetDates.length === 0) {
-                toast.error("No valid working days in selected range")
-                setLoading(false)
-                return
-            }
+                // Generate dates
+                let currentCursor = date
+                while (currentCursor <= endDate) {
+                    // Skip weekends and holidays
+                    if (!isWeekend(currentCursor) && !isHoliday(currentCursor)) {
+                        targetDates.push(currentCursor)
+                    }
+                    currentCursor = addDays(currentCursor, 1)
+                }
 
-            // Validate Limit for ALL dates
-            for (const d of targetDates) {
-                const currentTotal = getDayTotal(d)
-                if (currentTotal + h > 7) {
-                    toast.error(`Cannot save: Exceeds 7h limit on ${format(d, "dd/MM/yyyy")}. (Already has ${currentTotal}h)`)
+                if (targetDates.length === 0) {
+                    toast.error("No valid working days in selected range")
                     setLoading(false)
                     return
                 }
-            }
 
-            // Save All
-            let savedCount = 0
-            for (const d of targetDates) {
-                await logTime({
-                    date: d,
+                // Server-side batch log
+                const result = await logRecurringTime({
+                    dates: targetDates,
                     projectId: selectedProject,
                     hours: h,
                     description: description
                 })
-                savedCount++
-            }
 
-            toast.success(`Logged ${h}h for ${savedCount} day(s)`)
+                toast.success(`Logged ${h}h for ${result.count || targetDates.length} day(s)`)
+            }
 
             // Refresh data
             fetchData()
 
             setIsDialogOpen(false)
-            // Reset form
-            setSelectedProject("") // Reset project too or keep? User didn't specify. Standard is reset.
-            setDescription("")
-            setHours("1.0") // Reset to default
-            setRecurringType("none")
+            resetForm()
         } catch (err: any) {
             toast.error(err.message || "Failed to log time")
         } finally {
@@ -298,9 +305,14 @@ export default function TimesheetCalendar() {
                                         </span>
                                         <div className="flex items-center gap-3">
                                             <span className="text-2xl font-black text-primary">{formatDuration(entry.hours)}</span>
-                                            <Button variant="ghost" size="icon" className="h-10 w-10 text-slate-600 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors" onClick={() => handleDelete(entry.id)}>
-                                                <Trash2 className="h-5 w-5" />
-                                            </Button>
+                                            <div className="flex gap-1">
+                                                <Button variant="ghost" size="icon" className="h-10 w-10 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-colors" onClick={() => handleEdit(entry)}>
+                                                    <Pencil className="h-4 w-4" />
+                                                </Button>
+                                                <Button variant="ghost" size="icon" className="h-10 w-10 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors" onClick={() => handleDelete(entry.id)}>
+                                                    <Trash2 className="h-5 w-5" />
+                                                </Button>
+                                            </div>
                                         </div>
                                     </div>
                                     <p className="text-base font-bold text-slate-700 leading-relaxed line-clamp-3">{entry.description}</p>
@@ -353,7 +365,7 @@ export default function TimesheetCalendar() {
                     <DialogHeader className="p-8 bg-slate-100 border-b">
                         <div className="flex justify-between items-start">
                             <div>
-                                <DialogTitle className="text-3xl font-black text-slate-900 mb-1">Daily Log</DialogTitle>
+                                <DialogTitle className="text-3xl font-black text-slate-900 mb-1">{editingId ? 'Edit Entry' : 'Daily Log'}</DialogTitle>
                                 <DialogDescription className="text-slate-500 font-bold text-lg">
                                     {date ? format(date, 'EEEE, dd/MM/yyyy') : ''}
                                 </DialogDescription>
@@ -429,19 +441,21 @@ export default function TimesheetCalendar() {
                                         </SelectContent>
                                     </Select>
                                 </div>
-                                <div className="grid gap-2">
-                                    <Label className="text-xs font-black uppercase text-slate-500">Repeat</Label>
-                                    <Select onValueChange={setRecurringType} value={recurringType}>
-                                        <SelectTrigger className="h-12 bg-slate-100 border-slate-200 rounded-xl">
-                                            <SelectValue />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="none">One Time Only</SelectItem>
-                                            <SelectItem value="weekly">Daily until End of Week (Fri)</SelectItem>
-                                            <SelectItem value="monthly">Daily until End of Month</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                </div>
+                                {!editingId && (
+                                    <div className="grid gap-2">
+                                        <Label className="text-xs font-black uppercase text-slate-500">Repeat</Label>
+                                        <Select onValueChange={setRecurringType} value={recurringType}>
+                                            <SelectTrigger className="h-12 bg-slate-100 border-slate-200 rounded-xl">
+                                                <SelectValue />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="none">One Time Only</SelectItem>
+                                                <SelectItem value="weekly">Daily until End of Week (Fri)</SelectItem>
+                                                <SelectItem value="monthly">Daily until End of Month</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                )}
                                 <div className="grid gap-2">
                                     <Label className="text-xs font-black uppercase text-slate-500">Description</Label>
                                     <Textarea
@@ -456,7 +470,7 @@ export default function TimesheetCalendar() {
                     </div>
 
                     <DialogFooter className="p-8 bg-slate-100 border-t gap-3 sm:gap-0">
-                        <Button variant="outline" onClick={() => setIsDialogOpen(false)} className="h-12 px-6 border-slate-300 font-black uppercase text-xs tracking-widest rounded-xl">
+                        <Button variant="outline" onClick={() => { setIsDialogOpen(false); resetForm(); }} className="h-12 px-6 border-slate-300 font-black uppercase text-xs tracking-widest rounded-xl">
                             Close
                         </Button>
                         <Button
@@ -465,7 +479,7 @@ export default function TimesheetCalendar() {
                             className="h-12 px-8 bg-primary hover:bg-orange-600 text-white font-black uppercase text-xs tracking-widest rounded-xl ml-2 shadow-lg shadow-primary/20"
                         >
                             {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                            Log Work
+                            {editingId ? 'Save Changes' : 'Log Work'}
                         </Button>
                     </DialogFooter>
                 </DialogContent>
