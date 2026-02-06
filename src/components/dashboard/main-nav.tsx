@@ -113,13 +113,7 @@ export function UserNav() {
                         Profile
                     </Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                    {/* Placeholder for settings if needed */}
-                    <span className="opacity-50 cursor-not-allowed flex items-center">
-                        <Settings className="mr-2 h-4 w-4" />
-                        Settings
-                    </span>
-                </DropdownMenuItem>
+
                 <DropdownMenuSeparator />
                 <DropdownMenuItem className="text-red-500 focus:text-red-600 cursor-pointer" onClick={() => signOut({ callbackUrl: "/login" })}>
                     <LogOut className="mr-2 h-4 w-4" />

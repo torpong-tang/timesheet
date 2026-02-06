@@ -9,8 +9,11 @@ export default function DashboardLayout({
         <div className="flex-col md:flex min-h-screen">
             <div className="border-b bg-slate-50/40 backdrop-blur-md sticky top-0 z-50">
                 <div className="flex h-16 items-center px-4 container mx-auto">
-                    <div className="mr-8 font-extrabold text-2xl tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-amber-600">
-                        Timesheet
+                    <div className="mr-8 flex items-center gap-2">
+                        <img src="/logo-3d.png" alt="Logo" className="w-8 h-8 object-contain drop-shadow-sm transition-transform hover:scale-110" />
+                        <span className="font-extrabold text-2xl tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-amber-600">
+                            Timesheet
+                        </span>
                     </div>
                     <MainNav className="mx-6" />
                     <div className="ml-auto flex items-center space-x-4">

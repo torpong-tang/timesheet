@@ -17,7 +17,9 @@ export type ReportEntry = {
     date: Date
     hours: number
     description: string
-    user: { name: string, userlogin: string }
+    userId: string
+    projectId: string
+    user: { name: string | null, userlogin: string }
     project: { name: string, code: string }
 }
 

@@ -51,9 +51,13 @@ export default function LoginPage() {
                 <div className="absolute -top-24 -right-24 w-48 h-48 bg-primary/20 blur-3xl rounded-full" />
                 <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-secondary/20 blur-3xl rounded-full" />
 
-                <CardHeader className="space-y-2 text-center relative z-10">
-                    <div className="mx-auto w-16 h-16 rounded-2xl bg-primary flex items-center justify-center shadow-xl shadow-primary/30 mb-2 rotate-3 hover:rotate-0 transition-transform">
-                        <Calendar className="text-white h-8 w-8" />
+                <CardHeader className="space-y-4 text-center relative z-10">
+                    <div className="mx-auto w-24 h-24 mb-4 hover:scale-105 transition-transform duration-300">
+                        <img
+                            src="/logo-3d.png"
+                            alt="Timesheet Logo"
+                            className="w-full h-full object-contain drop-shadow-xl"
+                        />
                     </div>
                     <CardTitle className="text-4xl font-black tracking-tighter text-slate-900">
                         TIME<span className="text-primary italic">SHEET</span>
