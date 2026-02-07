@@ -35,6 +35,12 @@ model User {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   status      String   @default("Enable")
+
+  // Indexes for faster queries
+  @@index([role])               // Filter users by role (Team Overview)
+  @@index([status])             // Filter enabled/disabled users
+  @@index([name])               // Search by name
+  @@index([createdAt])          // Sort by creation date
 }
 
 model Project {
@@ -51,6 +57,12 @@ model Project {
   
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  // Indexes for faster queries
+  @@index([name])               // Search by project name
+  @@index([startDate])          // Filter by date range
+  @@index([endDate])            // Filter by date range
+  @@index([startDate, endDate]) // Date range queries
 }
 
 model ProjectAssignment {
@@ -64,6 +76,10 @@ model ProjectAssignment {
   createdAt DateTime @default(now())
 
   @@unique([userId, projectId])
+  
+  // Indexes for faster lookups
+  @@index([userId])             // Get all projects for a user
+  @@index([projectId])          // Get all users for a project
 }
 
 model TimesheetEntry {
@@ -80,7 +96,14 @@ model TimesheetEntry {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt // For lock logic check
 
-  @@index([userId, date])
+  // Indexes for faster queries
+  @@index([userId, date])       // Get entries for a user on a date (existing)
+  @@index([userId])             // Get all entries for a user
+  @@index([projectId])          // Get all entries for a project
+  @@index([date])               // Get all entries on a date
+  @@index([userId, projectId])  // Get entries for user+project combination
+  @@index([userId, date, projectId]) // Complex queries for reports
+  @@index([createdAt])          // Sort by creation date
 }
 
 model Holiday {
@@ -91,6 +114,10 @@ model Holiday {
   
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  // Indexes for faster queries
+  @@index([year])               // Get holidays for a year
+  @@index([year, date])         // Get holidays in year sorted by date
 }
 
 model AuditLog {
@@ -102,4 +129,10 @@ model AuditLog {
   user      User     @relation(fields: [userId], references: [id])
   
   timestamp DateTime @default(now())
+
+  // Indexes for faster queries
+  @@index([userId])             // Get logs for a user
+  @@index([action])             // Filter by action type
+  @@index([timestamp])          // Sort by timestamp (recent logs)
+  @@index([userId, timestamp])  // Get user logs sorted by time
 }
