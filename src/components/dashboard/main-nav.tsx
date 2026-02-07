@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { signOut, useSession } from "next-auth/react"
+import { useLanguage } from "@/components/providers/language-provider"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import {
@@ -23,26 +24,27 @@ export function MainNav({
     const pathname = usePathname()
     const { data: session } = useSession()
 
+    const { t } = useLanguage()
+
     const routes = [
         {
             href: "/dashboard",
-            label: "Dashboard",
+            label: t('nav.dashboard'),
             icon: LayoutDashboard,
             active: pathname === "/dashboard",
         },
         {
             href: "/dashboard/calendar",
-            label: "My Calendar",
+            label: t('nav.calendar'),
             icon: CalendarIcon,
             active: pathname === "/dashboard/calendar",
         },
         {
             href: "/dashboard/reports",
-            label: "Reports",
-            icon: LayoutDashboard, // Reusing icon or should import FileText etc.
+            label: t('nav.reports'),
+            icon: LayoutDashboard,
             active: pathname === "/dashboard/reports",
         },
-        // Add Admin routes conditionally if needed
     ]
 
     return (
@@ -72,7 +74,7 @@ export function MainNav({
                     )}
                 >
                     <Settings className="h-4 w-4" />
-                    Admin
+                    {t('nav.admin')}
                 </Link>
             )}
         </nav>
@@ -81,6 +83,7 @@ export function MainNav({
 
 export function UserNav() {
     const { data: session } = useSession()
+    const { t } = useLanguage()
 
     return (
         <DropdownMenu>
@@ -110,14 +113,14 @@ export function UserNav() {
                 <DropdownMenuItem asChild>
                     <Link href="/dashboard/profile" className="cursor-pointer">
                         <User className="mr-2 h-4 w-4" />
-                        Profile
+                        {t('nav.profile')}
                     </Link>
                 </DropdownMenuItem>
 
                 <DropdownMenuSeparator />
                 <DropdownMenuItem className="text-red-500 focus:text-red-600 cursor-pointer" onClick={() => signOut({ callbackUrl: "/login" })}>
                     <LogOut className="mr-2 h-4 w-4" />
-                    Log out
+                    {t('auth.logout')}
                 </DropdownMenuItem>
             </DropdownMenuContent>
         </DropdownMenu>

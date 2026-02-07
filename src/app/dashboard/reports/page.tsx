@@ -27,7 +27,6 @@ import { useSession } from "next-auth/react"
 import { cn, formatDuration } from "@/lib/utils"
 import { Pagination } from "@/components/Pagination"
 import { Combobox } from "@/components/ui/combobox"
-import { useLanguage } from "@/components/providers/language-provider"
 
 // Helper to highlight text
 const HighlightText = ({ text, highlight }: { text: string, highlight: string }) => {
@@ -48,7 +47,6 @@ const HighlightText = ({ text, highlight }: { text: string, highlight: string })
 
 export default function ReportsPage() {
     const { data: session } = useSession()
-    const { t } = useLanguage()
     const [loading, setLoading] = useState(false)
     const [exporting, setExporting] = useState(false)
 
@@ -277,14 +275,14 @@ export default function ReportsPage() {
         <div className="space-y-6">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl font-black tracking-tight text-slate-900">{t('reports.title')}</h1>
-                    <p className="text-slate-500 font-medium">{t('reports.subtitle')}</p>
+                    <h1 className="text-3xl font-black tracking-tight text-slate-900">Advanced <span className="text-primary italic">Reports</span></h1>
+                    <p className="text-slate-500 font-medium">Analyze time logs with precision</p>
                 </div>
 
                 <div className="flex gap-2">
                     <Button variant="outline" onClick={handleExport} disabled={exporting || rawData.length === 0}>
                         {exporting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Download className="mr-2 h-4 w-4" />}
-                        {t('reports.export')}
+                        Export
                     </Button>
                 </div>
             </div>
@@ -293,7 +291,7 @@ export default function ReportsPage() {
             <div className="bg-slate-50 p-6 rounded-3xl border border-slate-200 shadow-xl space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-6 items-end">
                     <div className="grid gap-2">
-                        <Label className="text-xs font-black uppercase text-slate-500">{t('reports.month')}</Label>
+                        <Label className="text-xs font-black uppercase text-slate-500">Month</Label>
                         <Input
                             type="month"
                             value={month}
@@ -303,7 +301,7 @@ export default function ReportsPage() {
                     </div>
                     <div className="md:col-span-3 flex justify-end">
                         <Button onClick={fetchReport} disabled={loading} size="lg" className="rounded-xl px-8 font-black uppercase tracking-widest text-xs h-11">
-                            {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : t('reports.load')}
+                            {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Load Data"}
                         </Button>
                     </div>
                 </div>
@@ -312,41 +310,41 @@ export default function ReportsPage() {
                     <div className="grid grid-cols-1 md:grid-cols-12 gap-4 border-t border-slate-100 pt-6 animate-in slide-in-from-top-2">
                         {/* Filters */}
                         <div className="md:col-span-3 grid gap-2">
-                            <Label className="text-xs font-black uppercase text-slate-500">{t('reports.user')}</Label>
+                            <Label className="text-xs font-black uppercase text-slate-500">User</Label>
                             <Combobox
                                 value={selectedUser}
                                 onChange={(v) => { setSelectedUser(v); setPage(1); }}
                                 options={[
-                                    { label: `${t('reports.all_users')} (${availableOptions.users.length})`, value: "all" },
+                                    { label: `All Users (${availableOptions.users.length})`, value: "all" },
                                     ...availableOptions.users.map(u => ({ label: `${u.name} (@${u.id})`, value: u.id }))
                                 ]}
-                                placeholder={t('reports.select_user')}
-                                searchPlaceholder={t('reports.search_user')}
-                                emptyText={t('reports.no_user')}
+                                placeholder="Select User"
+                                searchPlaceholder="Search user..."
+                                emptyText="No user found."
                             />
                         </div>
                         <div className="md:col-span-3 grid gap-2">
-                            <Label className="text-xs font-black uppercase text-slate-500">{t('reports.project')}</Label>
+                            <Label className="text-xs font-black uppercase text-slate-500">Project</Label>
                             <Combobox
                                 value={selectedProject}
                                 onChange={(v) => { setSelectedProject(v); setPage(1); }}
                                 options={[
-                                    { label: `${t('reports.all_projects')} (${availableOptions.projects.length})`, value: "all" },
+                                    { label: `All Projects (${availableOptions.projects.length})`, value: "all" },
                                     ...availableOptions.projects.map(p => ({ label: `${p.code} - ${p.name}`, value: p.id }))
                                 ]}
-                                placeholder={t('reports.select_project')}
-                                searchPlaceholder={t('reports.search_project')}
-                                emptyText={t('reports.no_project')}
+                                placeholder="Select Project"
+                                searchPlaceholder="Search project..."
+                                emptyText="No project found."
                             />
                         </div>
 
                         {/* Search */}
                         <div className="md:col-span-6 grid gap-2">
-                            <Label className="text-xs font-black uppercase text-slate-500">{t('reports.quick_find')}</Label>
+                            <Label className="text-xs font-black uppercase text-slate-500">Quick Find</Label>
                             <div className="relative">
                                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
                                 <Input
-                                    placeholder={t('reports.search_placeholder')}
+                                    placeholder="Type to search description, user, or project..."
                                     value={searchQuery}
                                     onChange={e => { setSearchQuery(e.target.value); setPage(1); }}
                                     className="pl-9 h-10 bg-yellow-50/50 border-yellow-200 text-slate-900 placeholder:text-slate-500 rounded-xl focus-visible:ring-yellow-400"
@@ -369,7 +367,7 @@ export default function ReportsPage() {
                                 className={cn("rounded-lg text-xs font-bold", viewMode === 'daily' && "bg-slate-50 text-primary shadow-sm")}
                             >
                                 <LayoutList className="mr-2 h-3.5 w-3.5" />
-                                {t('reports.daily_logs')}
+                                Daily Logs
                             </Button>
                             <Button
                                 variant={viewMode === 'summary' ? 'default' : 'ghost'}
@@ -378,16 +376,16 @@ export default function ReportsPage() {
                                 className={cn("rounded-lg text-xs font-bold", viewMode === 'summary' && "bg-slate-50 text-primary shadow-sm")}
                             >
                                 <Grip className="mr-2 h-3.5 w-3.5" />
-                                {t('reports.summary')}
+                                Summary by Project
                             </Button>
                         </div>
 
                         <div className="flex items-center gap-4">
                             <span className="text-xs font-black uppercase text-slate-500 tracking-widest hidden md:inline">
-                                {viewMode === 'daily' ? `${t('reports.found')} ${processedData.length} ${t('reports.records')}` : `${t('reports.found')} ${summaryData.length} ${t('reports.groups')}`}
+                                {viewMode === 'daily' ? `Found ${processedData.length} records` : `Found ${summaryData.length} groups`}
                             </span>
                             <div className="flex items-center gap-2 bg-slate-50 px-4 py-2 rounded-xl border border-slate-200 shadow-sm">
-                                <span className="text-xs font-bold text-slate-500 uppercase">{t('reports.total_hours')}</span>
+                                <span className="text-xs font-bold text-slate-500 uppercase">Total Hours</span>
                                 <span className="text-xl font-black text-primary">{formatDuration(totalHours)}</span>
                             </div>
                         </div>
@@ -400,34 +398,34 @@ export default function ReportsPage() {
                                     {viewMode === 'daily' ? (
                                         <>
                                             <TableHead className="w-[150px] cursor-pointer hover:text-primary transition-colors" onClick={() => handleSort('date')}>
-                                                {t('reports.table.date')} <SortIcon column="date" />
+                                                Date <SortIcon column="date" />
                                             </TableHead>
                                             <TableHead className="cursor-pointer hover:text-primary transition-colors" onClick={() => handleSort('user.name')}>
-                                                {t('reports.table.employee')} <SortIcon column="user.name" />
+                                                Employee <SortIcon column="user.name" />
                                             </TableHead>
                                             <TableHead className="cursor-pointer hover:text-primary transition-colors" onClick={() => handleSort('project.code')}>
-                                                {t('reports.table.project_code')} <SortIcon column="project.code" />
+                                                Project <SortIcon column="project.code" />
                                             </TableHead>
                                             <TableHead className="w-[40%] cursor-pointer hover:text-primary transition-colors" onClick={() => handleSort('description')}>
-                                                {t('reports.table.description')} <SortIcon column="description" />
+                                                Description <SortIcon column="description" />
                                             </TableHead>
                                             <TableHead className="text-right cursor-pointer hover:text-primary transition-colors" onClick={() => handleSort('hours')}>
-                                                {t('reports.table.hours')} <SortIcon column="hours" />
+                                                Hours <SortIcon column="hours" />
                                             </TableHead>
                                         </>
                                     ) : (
                                         <>
                                             <TableHead className="cursor-pointer hover:text-primary transition-colors" onClick={() => handleSort('user.name')}>
-                                                {t('reports.table.employee')} <SortIcon column="user.name" />
+                                                Employee <SortIcon column="user.name" />
                                             </TableHead>
                                             <TableHead className="cursor-pointer hover:text-primary transition-colors" onClick={() => handleSort('project.code')}>
-                                                {t('reports.table.project_code')} <SortIcon column="project.code" />
+                                                Project Code <SortIcon column="project.code" />
                                             </TableHead>
                                             <TableHead className="cursor-pointer hover:text-primary transition-colors" onClick={() => handleSort('project.name')}>
-                                                {t('reports.table.project_name')} <SortIcon column="project.name" />
+                                                Project Name <SortIcon column="project.name" />
                                             </TableHead>
                                             <TableHead className="text-right cursor-pointer hover:text-primary transition-colors" onClick={() => handleSort('hours')}>
-                                                {t('reports.table.total')} <SortIcon column="hours" />
+                                                Total Hours <SortIcon column="hours" />
                                             </TableHead>
                                         </>
                                     )}
@@ -437,7 +435,7 @@ export default function ReportsPage() {
                                 {paginatedData.length === 0 ? (
                                     <TableRow>
                                         <TableCell colSpan={viewMode === 'daily' ? 5 : 4} className="h-32 text-center text-slate-500 font-medium italic">
-                                            {t('reports.no_records')}
+                                            No matching records found.
                                         </TableCell>
                                     </TableRow>
                                 ) : (
@@ -504,7 +502,7 @@ export default function ReportsPage() {
                     {/* Pagination */}
                     <div className="bg-slate-50 border-t border-slate-100 p-4 flex flex-col sm:flex-row justify-between items-center gap-4">
                         <div className="flex items-center gap-2">
-                            <span className="text-xs font-bold text-slate-500">{t('reports.rows_per_page')}</span>
+                            <span className="text-xs font-bold text-slate-500">Rows per page</span>
                             <Select value={pageSize.toString()} onValueChange={(v) => { setPageSize(Number(v)); setPage(1); }}>
                                 <SelectTrigger className="h-8 w-[70px] bg-slate-100 border-slate-200 rounded-lg text-xs font-bold">
                                     <SelectValue />

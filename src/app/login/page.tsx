@@ -10,8 +10,11 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { toast } from "sonner"
 import { Loader2, Calendar } from "lucide-react"
 
+import { useLanguage } from "@/components/providers/language-provider"
+
 export default function LoginPage() {
     const router = useRouter()
+    const { t } = useLanguage()
     const [loading, setLoading] = useState(false)
 
     const [userlogin, setUserlogin] = useState("")
@@ -29,16 +32,16 @@ export default function LoginPage() {
             })
 
             if (result?.error) {
-                toast.error("Login failed", {
-                    description: "Invalid User Login or Password"
+                toast.error(t('login.fail'), {
+                    description: t('login.fail_desc')
                 })
             } else {
-                toast.success("Welcome back!")
+                toast.success(t('login.welcome'))
                 router.push("/dashboard")
                 router.refresh()
             }
         } catch (error) {
-            toast.error("Something went wrong")
+            toast.error(t('common.loading') + " failed") // Using simple fallback or can add key
         } finally {
             setLoading(false)
         }
@@ -52,7 +55,7 @@ export default function LoginPage() {
                 <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-secondary/20 blur-3xl rounded-full" />
 
                 <CardHeader className="space-y-4 text-center relative z-10">
-                    <div className="mx-auto w-24 h-24 mb-4 hover:scale-105 transition-transform duration-300">
+                    <div className="mx-auto w-48 h-48 mb-6 hover:scale-105 transition-transform duration-300">
                         <img
                             src="/logo-3d.png"
                             alt="Timesheet Logo"
@@ -63,13 +66,13 @@ export default function LoginPage() {
                         TIME<span className="text-primary italic">SHEET</span>
                     </CardTitle>
                     <CardDescription className="text-slate-500 font-medium">
-                        Access your workspace to track productivity
+                        {t('login.subtitle')}
                     </CardDescription>
                 </CardHeader>
                 <form onSubmit={handleLogin} className="relative z-10">
                     <CardContent className="grid gap-6">
                         <div className="grid gap-2">
-                            <Label htmlFor="userlogin" className="font-bold text-slate-700 ml-1 uppercase text-[10px] tracking-widest">User Login</Label>
+                            <Label htmlFor="userlogin" className="font-bold text-slate-700 ml-1 uppercase text-[10px] tracking-widest">{t('login.user')}</Label>
                             <Input
                                 id="userlogin"
                                 placeholder="Torpong.T"
@@ -80,7 +83,7 @@ export default function LoginPage() {
                             />
                         </div>
                         <div className="grid gap-2">
-                            <Label htmlFor="password" title="password" className="font-bold text-slate-700 ml-1 uppercase text-[10px] tracking-widest">Password</Label>
+                            <Label htmlFor="password" title="password" className="font-bold text-slate-700 ml-1 uppercase text-[10px] tracking-widest">{t('login.pass')}</Label>
                             <Input
                                 id="password"
                                 type="password"
@@ -94,7 +97,7 @@ export default function LoginPage() {
                     </CardContent>
                     <CardFooter className="pt-2">
                         <Button className="w-full h-12 font-bold text-lg bg-primary hover:bg-orange-600 shadow-xl shadow-primary/20 transition-all active:scale-[0.98] rounded-xl text-white" type="submit" disabled={loading}>
-                            {loading ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : "Sign In"}
+                            {loading ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : t('login.btn')}
                         </Button>
                     </CardFooter>
                 </form>

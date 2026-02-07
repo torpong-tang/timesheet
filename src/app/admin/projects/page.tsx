@@ -29,6 +29,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select"
+import { useLanguage } from "@/components/providers/language-provider"
 import { toast } from "sonner"
 import { Loader2, Plus, Pencil, Trash2, Search, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react"
 import { format } from "date-fns"
@@ -51,6 +52,7 @@ const HighlightText = ({ text, highlight }: { text: string, highlight: string })
 }
 
 export default function ProjectsPage() {
+    const { t, language } = useLanguage()
     const [projects, setProjects] = useState<Project[]>([])
     const [loading, setLoading] = useState(true)
     const [isDialogOpen, setIsDialogOpen] = useState(false)
@@ -201,13 +203,13 @@ export default function ProjectsPage() {
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                     <h1 className="text-4xl font-black tracking-tight text-slate-900 mb-1">
-                        Project <span className="text-primary italic">Catalog</span>
+                        {language === 'en' ? <>Project <span className="text-primary italic">Catalog</span></> : <span className="text-primary">{t('proj.title')}</span>}
                     </h1>
-                    <p className="text-slate-500 font-medium">Manage and monitor all active development projects</p>
+                    <p className="text-slate-500 font-medium">{t('proj.subtitle')}</p>
                 </div>
                 <Button onClick={handleAdd} className="shadow-lg shadow-primary/25 bg-primary hover:bg-orange-600 rounded-xl">
                     <Plus className="mr-2 h-4 w-4" />
-                    Add Project
+                    {t('proj.add')}
                 </Button>
             </div>
 
@@ -217,7 +219,7 @@ export default function ProjectsPage() {
                     <div className="relative">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
                         <Input
-                            placeholder="Search projects by code or name..."
+                            placeholder={t('proj.search')}
                             value={searchQuery}
                             onChange={e => { setSearchQuery(e.target.value); setPage(1); }}
                             className="pl-9 h-11 bg-slate-100 border-slate-200 rounded-xl"
@@ -225,7 +227,7 @@ export default function ProjectsPage() {
                     </div>
                     <div className="flex justify-end items-center gap-4">
                         <span className="text-xs font-black uppercase text-slate-500 tracking-widest hidden md:inline">
-                            Total {processedProjects.length} Projects
+                            {t('proj.total')} {processedProjects.length}
                         </span>
                     </div>
                 </div>
@@ -236,18 +238,18 @@ export default function ProjectsPage() {
                         <TableHeader className="bg-slate-100/50">
                             <TableRow className="hover:bg-transparent border-slate-200">
                                 <TableHead className="font-bold text-slate-900 cursor-pointer hover:text-primary transition-colors" onClick={() => handleSort('code')}>
-                                    Code <SortIcon column="code" />
+                                    {t('proj.table.code')} <SortIcon column="code" />
                                 </TableHead>
                                 <TableHead className="font-bold text-slate-900 cursor-pointer hover:text-primary transition-colors" onClick={() => handleSort('name')}>
-                                    Project Name <SortIcon column="name" />
+                                    {t('proj.table.name')} <SortIcon column="name" />
                                 </TableHead>
                                 <TableHead className="font-bold text-slate-900 cursor-pointer hover:text-primary transition-colors" onClick={() => handleSort('startDate')}>
-                                    Timeline <SortIcon column="startDate" />
+                                    {t('proj.table.timeline')} <SortIcon column="startDate" />
                                 </TableHead>
                                 <TableHead className="font-bold text-slate-900 cursor-pointer hover:text-primary transition-colors" onClick={() => handleSort('budget')}>
-                                    Budget <SortIcon column="budget" />
+                                    {t('proj.table.budget')} <SortIcon column="budget" />
                                 </TableHead>
-                                <TableHead className="text-right font-bold text-slate-900 px-6">Actions</TableHead>
+                                <TableHead className="text-right font-bold text-slate-900 px-6">{t('common.actions')}</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -256,7 +258,7 @@ export default function ProjectsPage() {
                                     <TableCell colSpan={6} className="h-48 text-center">
                                         <div className="flex flex-col items-center gap-2">
                                             <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                                            <p className="text-sm font-bold text-slate-500">Loading catalog...</p>
+                                            <p className="text-sm font-bold text-slate-500">{t('common.loading')}</p>
                                         </div>
                                     </TableCell>
                                 </TableRow>
@@ -333,13 +335,13 @@ export default function ProjectsPage() {
                 <DialogContent className="sm:max-w-[500px] bg-slate-50 border-none shadow-2xl p-0 overflow-hidden">
                     <DialogHeader className="p-6 bg-slate-100 border-b">
                         <DialogTitle className="text-2xl font-black text-slate-900">
-                            {editingId ? "Edit Project Details" : "Launch New Project"}
+                            {editingId ? t('proj.dialog.edit') : t('proj.dialog.add')}
                         </DialogTitle>
                     </DialogHeader>
                     <div className="grid gap-6 p-6">
                         <div className="grid grid-cols-2 gap-4">
                             <div className="grid gap-2">
-                                <Label className="text-xs font-black uppercase text-slate-500">Project Code</Label>
+                                <Label className="text-xs font-black uppercase text-slate-500">{t('proj.form.code')}</Label>
                                 <Input
                                     value={formData.code}
                                     onChange={e => setFormData({ ...formData, code: e.target.value })}
@@ -348,7 +350,7 @@ export default function ProjectsPage() {
                                 />
                             </div>
                             <div className="grid gap-2">
-                                <Label className="text-xs font-black uppercase text-slate-500">Budget Allocation</Label>
+                                <Label className="text-xs font-black uppercase text-slate-500">{t('proj.form.budget')}</Label>
                                 <Input
                                     type="number"
                                     value={isNaN(formData.budget) ? "" : formData.budget}
@@ -361,7 +363,7 @@ export default function ProjectsPage() {
                             </div>
                         </div>
                         <div className="grid gap-2">
-                            <Label className="text-xs font-black uppercase text-slate-500">Project Name</Label>
+                            <Label className="text-xs font-black uppercase text-slate-500">{t('proj.form.name')}</Label>
                             <Input
                                 value={formData.name}
                                 onChange={e => setFormData({ ...formData, name: e.target.value })}
@@ -371,7 +373,7 @@ export default function ProjectsPage() {
                         </div>
                         <div className="grid grid-cols-2 gap-4">
                             <div className="grid gap-2">
-                                <Label className="text-xs font-black uppercase text-slate-500">Start Date</Label>
+                                <Label className="text-xs font-black uppercase text-slate-500">{t('proj.form.start')}</Label>
                                 <Input
                                     type="date"
                                     value={formData.startDate}
@@ -380,7 +382,7 @@ export default function ProjectsPage() {
                                 />
                             </div>
                             <div className="grid gap-2">
-                                <Label className="text-xs font-black uppercase text-slate-500">End Date</Label>
+                                <Label className="text-xs font-black uppercase text-slate-500">{t('proj.form.end')}</Label>
                                 <Input
                                     type="date"
                                     value={formData.endDate}
@@ -392,11 +394,11 @@ export default function ProjectsPage() {
                     </div>
                     <DialogFooter className="p-6 bg-slate-100 border-t gap-2 sm:gap-0">
                         <Button variant="outline" onClick={() => setIsDialogOpen(false)} className="border-slate-300 font-bold">
-                            Cancel
+                            {t('common.cancel')}
                         </Button>
                         <Button onClick={handleSave} disabled={saving} className="bg-primary hover:bg-orange-600 text-white font-bold ml-2">
                             {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                            Save Project
+                            {t('proj.save')}
                         </Button>
                     </DialogFooter>
                 </DialogContent>

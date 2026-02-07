@@ -231,7 +231,7 @@ export default function AssignmentsPage() {
                     <div className="relative">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
                         <Input
-                            placeholder="Search assignments..."
+                            placeholder={t('assign.search')}
                             value={searchQuery}
                             onChange={e => { setSearchQuery(e.target.value); setPage(1); }}
                             className="pl-9 h-11 bg-slate-100 border-slate-200 rounded-xl"
@@ -267,14 +267,14 @@ export default function AssignmentsPage() {
                                     <TableCell colSpan={4} className="h-48 text-center">
                                         <div className="flex flex-col items-center gap-2">
                                             <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                                            <p className="text-sm font-bold text-slate-500">Loading resources...</p>
+                                            <p className="text-sm font-bold text-slate-500">{t('assign.loading')}</p>
                                         </div>
                                     </TableCell>
                                 </TableRow>
                             ) : paginatedAssignments.length === 0 ? (
                                 <TableRow>
                                     <TableCell colSpan={4} className="h-32 text-center text-slate-500 font-medium italic">
-                                        No matching assignments found.
+                                        {t('assign.no_match')}
                                     </TableCell>
                                 </TableRow>
                             ) : paginatedAssignments.map((assignment) => (
@@ -348,7 +348,7 @@ export default function AssignmentsPage() {
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                 <DialogContent className="sm:max-w-[450px] bg-slate-50 border-none shadow-2xl p-0 overflow-hidden">
                     <DialogHeader className="p-6 bg-slate-100 border-b">
-                        <DialogTitle className="text-2xl font-black text-slate-900">Assign Member</DialogTitle>
+                        <DialogTitle className="text-2xl font-black text-slate-900">{t('assign.dialog.title')}</DialogTitle>
                     </DialogHeader>
                     <div className="grid gap-6 p-6">
                         <div className="grid gap-2">
