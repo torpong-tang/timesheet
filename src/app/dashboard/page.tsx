@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Loader2, TrendingUp, TrendingDown, Clock, Briefcase, Calendar, Activity } from "lucide-react"
 import { format } from "date-fns"
 import { cn, formatDuration } from "@/lib/utils"
+import { LanguageSwitcher } from "@/components/language-switcher"
 
 export default function DashboardPage() {
     const { data: session } = useSession()
@@ -48,14 +49,17 @@ export default function DashboardPage() {
     return (
         <div className="space-y-8 pb-10">
             {/* Header */}
-            <div>
-                <h1 className="text-4xl font-black tracking-tight text-slate-900 mb-2">
-                    Dashboard <span className="text-primary italic">Overview</span>
-                </h1>
-                <p className="text-slate-500 font-medium">
-                    Welcome back, <span className="text-slate-900 font-bold">{session?.user?.name}</span>.
-                    Here's what's happening {isManager ? "with your team" : "with your work"}.
-                </p>
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                    <h1 className="text-4xl font-black tracking-tight text-slate-900 mb-2">
+                        Dashboard <span className="text-primary italic">Overview</span>
+                    </h1>
+                    <p className="text-slate-500 font-medium">
+                        Welcome back, <span className="text-slate-900 font-bold">{session?.user?.name}</span>.
+                        Here's what's happening {isManager ? "with your team" : "with your work"}.
+                    </p>
+                </div>
+                <LanguageSwitcher />
             </div>
 
             {/* Key Metrics Grid */}

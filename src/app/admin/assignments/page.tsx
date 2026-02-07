@@ -28,6 +28,8 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select"
+import { Combobox } from "@/components/ui/combobox"
+import { useLanguage } from "@/components/providers/language-provider"
 import { Input } from "@/components/ui/input"
 import { toast } from "sonner"
 import { Loader2, Plus, Trash2, Search, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react"
@@ -55,7 +57,9 @@ const HighlightText = ({ text, highlight }: { text: string, highlight: string })
 }
 
 
+
 export default function AssignmentsPage() {
+    const { t, language } = useLanguage()
     const [assignments, setAssignments] = useState<AssignmentWithRelations[]>([])
     const [users, setUsers] = useState<User[]>([])
     const [projects, setProjects] = useState<Project[]>([])
@@ -211,13 +215,13 @@ export default function AssignmentsPage() {
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                     <h1 className="text-4xl font-black tracking-tight text-slate-900 mb-1">
-                        Resource <span className="text-primary italic">Allocation</span>
+                        {language === 'en' ? <>Resource <span className="text-primary italic">Allocation</span></> : <span className="text-primary">{t('assign.title')}</span>}
                     </h1>
-                    <p className="text-slate-500 font-medium">Link team members to specific active projects</p>
+                    <p className="text-slate-500 font-medium">{t('assign.subtitle')}</p>
                 </div>
                 <Button onClick={handleAdd} className="shadow-lg shadow-primary/25 bg-primary hover:bg-orange-600 rounded-xl">
                     <Plus className="mr-2 h-4 w-4" />
-                    Assign Member
+                    {t('assign.add')}
                 </Button>
             </div>
 
@@ -235,7 +239,7 @@ export default function AssignmentsPage() {
                     </div>
                     <div className="flex justify-end items-center gap-4">
                         <span className="text-xs font-black uppercase text-slate-500 tracking-widest hidden md:inline">
-                            Total {processedAssignments.length} Assignments
+                            {t('assign.total')} {processedAssignments.length}
                         </span>
                     </div>
                 </div>
@@ -246,15 +250,15 @@ export default function AssignmentsPage() {
                         <TableHeader className="bg-slate-100/50">
                             <TableRow className="hover:bg-transparent border-slate-200">
                                 <TableHead className="font-bold text-slate-900 cursor-pointer hover:text-primary transition-colors" onClick={() => handleSort('user')}>
-                                    Team Member <SortIcon column="user" />
+                                    {t('assign.table.member')} <SortIcon column="user" />
                                 </TableHead>
                                 <TableHead className="font-bold text-slate-900 cursor-pointer hover:text-primary transition-colors" onClick={() => handleSort('project')}>
-                                    Assigned Project <SortIcon column="project" />
+                                    {t('assign.table.project')} <SortIcon column="project" />
                                 </TableHead>
                                 <TableHead className="font-bold text-slate-900 cursor-pointer hover:text-primary transition-colors" onClick={() => handleSort('role')}>
-                                    User Role <SortIcon column="role" />
+                                    {t('assign.table.role')} <SortIcon column="role" />
                                 </TableHead>
-                                <TableHead className="text-right font-bold text-slate-900 px-6">Actions</TableHead>
+                                <TableHead className="text-right font-bold text-slate-900 px-6">{t('common.actions')}</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -348,39 +352,31 @@ export default function AssignmentsPage() {
                     </DialogHeader>
                     <div className="grid gap-6 p-6">
                         <div className="grid gap-2">
-                            <Label className="text-xs font-black uppercase text-slate-500">Team Member</Label>
-                            <Select value={selectedUser} onValueChange={setSelectedUser}>
-                                <SelectTrigger className="bg-slate-100 border-slate-200">
-                                    <SelectValue placeholder="Select User" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {users.map(u => (
-                                        <SelectItem key={u.id} value={u.id}>{u.name}</SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
+                            <Label className="text-xs font-black uppercase text-slate-500">{t('assign.form.member')}</Label>
+                            <Combobox
+                                value={selectedUser}
+                                onChange={setSelectedUser}
+                                options={users.map(u => ({ label: `${u.name || "Unknown"} (${u.userlogin})`, value: u.id }))}
+                                placeholder={t('assign.form.select_user')}
+                            />
                         </div>
                         <div className="grid gap-2">
-                            <Label className="text-xs font-black uppercase text-slate-500">Target Project</Label>
-                            <Select value={selectedProject} onValueChange={setSelectedProject}>
-                                <SelectTrigger className="bg-slate-100 border-slate-200">
-                                    <SelectValue placeholder="Select Project" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {projects.map(p => (
-                                        <SelectItem key={p.id} value={p.id}>{p.code} - {p.name}</SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
+                            <Label className="text-xs font-black uppercase text-slate-500">{t('assign.form.project')}</Label>
+                            <Combobox
+                                value={selectedProject}
+                                onChange={setSelectedProject}
+                                options={projects.map(p => ({ label: `${p.code} - ${p.name}`, value: p.id }))}
+                                placeholder={t('assign.form.select_project')}
+                            />
                         </div>
                     </div>
                     <DialogFooter className="p-6 bg-slate-100 border-t gap-2 sm:gap-0">
                         <Button variant="outline" onClick={() => setIsDialogOpen(false)} className="border-slate-300 font-bold">
-                            Cancel
+                            {t('common.cancel')}
                         </Button>
                         <Button onClick={handleSave} disabled={saving} className="bg-primary hover:bg-orange-600 text-white font-bold ml-2">
                             {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                            Assign Member
+                            {t('assign.add')}
                         </Button>
                     </DialogFooter>
                 </DialogContent>
