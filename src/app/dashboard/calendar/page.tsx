@@ -14,6 +14,8 @@ import { getAssignedProjects, getTimesheetEntries, deleteEntry, updateEntry, Tim
 import { Project, TimesheetEntry, Holiday } from "@prisma/client"
 import { Trash2, Plus, Loader2, Calendar, ArrowLeft, ArrowRight, Pencil } from "lucide-react"
 import { cn, formatDuration } from "@/lib/utils"
+import { Combobox } from "@/components/ui/combobox"
+import { useLanguage } from "@/components/providers/language-provider"
 
 type TimesheetEntryWithProject = TimesheetEntry & {
     project: Project
@@ -28,6 +30,7 @@ export default function TimesheetCalendar() {
 
     const [isDialogOpen, setIsDialogOpen] = useState(false)
     const [loading, setLoading] = useState(false)
+    const { t } = useLanguage()
 
     // Form State
     const [selectedProject, setSelectedProject] = useState("")
@@ -190,7 +193,7 @@ export default function TimesheetCalendar() {
                     <h1 className="text-4xl font-black tracking-tight text-slate-900 mb-1">
                         Time <span className="text-primary italic">Tracker</span>
                     </h1>
-                    <p className="text-slate-500 font-medium italic">Log your daily activities and manage your schedule</p>
+                    <p className="text-slate-500 font-medium italic">{t('calendar.subtitle')}</p>
                 </div>
             </div>
 
@@ -220,11 +223,11 @@ export default function TimesheetCalendar() {
                                 <div className="flex items-center gap-6">
                                     <div className="flex items-center gap-2">
                                         <div className="w-4 h-4 rounded-full bg-primary/20 border-2 border-primary" />
-                                        <span className="text-sm font-bold text-slate-500">Working Day</span>
+                                        <span className="text-sm font-bold text-slate-500">{t('calendar.working_day')}</span>
                                     </div>
                                     <div className="flex items-center gap-2">
                                         <div className="w-4 h-4 rounded-full bg-red-100 border-2 border-red-500" />
-                                        <span className="text-sm font-bold text-slate-500">Holiday</span>
+                                        <span className="text-sm font-bold text-slate-500">{t('calendar.holiday')}</span>
                                     </div>
                                 </div>
                             </CardTitle>
@@ -286,8 +289,8 @@ export default function TimesheetCalendar() {
                         <CardHeader className="bg-slate-100 border-b border-slate-100 py-8 px-8">
                             <CardTitle className="flex justify-between items-center">
                                 <div className="flex flex-col">
-                                    <span className="text-xs font-black text-primary uppercase tracking-[0.2em] mb-2 leading-none">Schedule</span>
-                                    <span className="text-2xl font-black text-slate-900 tracking-tight">{date ? format(date, 'dd/MM/yyyy') : 'Pick Date'}</span>
+                                    <span className="text-xs font-black text-primary uppercase tracking-[0.2em] mb-2 leading-none">{t('calendar.schedule')}</span>
+                                    <span className="text-2xl font-black text-slate-900 tracking-tight">{date ? format(date, 'dd/MM/yyyy') : t('calendar.pick_date')}</span>
                                 </div>
                                 {date && getDayTotal(date) < 7 && (
                                     <Button size="icon" className="h-12 w-12 rounded-2xl bg-primary shadow-xl shadow-primary/30 hover:scale-110 active:scale-95 transition-all" onClick={() => setIsDialogOpen(true)}>
@@ -341,7 +344,7 @@ export default function TimesheetCalendar() {
                                         "px-4 py-2 rounded-2xl text-xs font-black uppercase tracking-widest shadow-sm",
                                         getDayTotal(date) >= 7 ? "bg-green-600 text-white" : "bg-amber-100 text-amber-700"
                                     )}>
-                                        {getDayTotal(date) >= 7 ? "Full" : "Work"}
+                                        {getDayTotal(date) >= 7 ? t('calendar.full') : t('calendar.work')}
                                     </div>
                                 </div>
                                 <div className="w-full h-5 bg-slate-200 rounded-full overflow-hidden shadow-inner border-2 border-white">
@@ -365,13 +368,13 @@ export default function TimesheetCalendar() {
                     <DialogHeader className="p-8 bg-slate-100 border-b">
                         <div className="flex justify-between items-start">
                             <div>
-                                <DialogTitle className="text-3xl font-black text-slate-900 mb-1">{editingId ? 'Edit Entry' : 'Daily Log'}</DialogTitle>
+                                <DialogTitle className="text-3xl font-black text-slate-900 mb-1">{editingId ? t('calendar.dialog.edit') : t('calendar.dialog.title')}</DialogTitle>
                                 <DialogDescription className="text-slate-500 font-bold text-lg">
                                     {date ? format(date, 'EEEE, dd/MM/yyyy') : ''}
                                 </DialogDescription>
                             </div>
                             <div className="bg-primary/10 px-4 py-2 rounded-2xl flex flex-col items-center">
-                                <span className="text-[10px] font-black text-primary uppercase">Total Hours</span>
+                                <span className="text-[10px] font-black text-primary uppercase">{t('calendar.dialog.total_hours')}</span>
                                 <span className="text-2xl font-black text-primary">{date ? formatDuration(getDayTotal(date)) : 0} / 7h</span>
                             </div>
                         </div>
@@ -380,7 +383,7 @@ export default function TimesheetCalendar() {
                     <div className="grid grid-cols-1 md:grid-cols-2">
                         {/* Summary List */}
                         <div className="p-8 border-r border-slate-100 bg-slate-100/30">
-                            <h3 className="text-sm font-black text-slate-500 uppercase tracking-widest mb-4">Recorded Entries</h3>
+                            <h3 className="text-sm font-black text-slate-500 uppercase tracking-widest mb-4">{t('calendar.dialog.recorded')}</h3>
                             <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2">
                                 {date && getDayEntries(date).length > 0 ? getDayEntries(date).map(entry => (
                                     <div key={entry.id} className="bg-slate-50 p-4 rounded-2xl border border-slate-200 shadow-sm relative group">
@@ -403,7 +406,7 @@ export default function TimesheetCalendar() {
                                 )) : (
                                     <div className="text-center py-12 opacity-20">
                                         <Plus className="h-12 w-12 mx-auto mb-2" />
-                                        <p className="font-black text-xs uppercase">Empty</p>
+                                        <p className="font-black text-xs uppercase">{t('calendar.empty')}</p>
                                     </div>
                                 )}
                             </div>
@@ -411,23 +414,22 @@ export default function TimesheetCalendar() {
 
                         {/* New Entry Form */}
                         <div className="p-8">
-                            <h3 className="text-sm font-black text-slate-500 uppercase tracking-widest mb-4">Add New Entry</h3>
+                            <h3 className="text-sm font-black text-slate-500 uppercase tracking-widest mb-4">{t('calendar.dialog.add')}</h3>
                             <div className="space-y-6">
                                 <div className="grid gap-2">
-                                    <Label className="text-xs font-black uppercase text-slate-500">Project</Label>
-                                    <Select onValueChange={setSelectedProject} value={selectedProject}>
-                                        <SelectTrigger className="h-12 bg-slate-100 border-slate-200 rounded-xl">
-                                            <SelectValue placeholder="Select Project" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {projects.map(p => (
-                                                <SelectItem key={p.id} value={p.id}>{p.code} - {p.name}</SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
+                                    <Label className="text-xs font-black uppercase text-slate-500">{t('calendar.dialog.project')}</Label>
+                                    <Combobox
+                                        value={selectedProject}
+                                        onChange={setSelectedProject}
+                                        options={projects.map(p => ({ label: `${p.code} - ${p.name}`, value: p.id }))}
+                                        placeholder={t('calendar.dialog.select_project')}
+                                        searchPlaceholder={t('calendar.dialog.search_project')}
+                                        emptyText={t('calendar.dialog.no_project')}
+                                        className="h-12 bg-slate-100 border-slate-200 rounded-xl"
+                                    />
                                 </div>
                                 <div className="grid gap-2">
-                                    <Label className="text-xs font-black uppercase text-slate-500">Hours</Label>
+                                    <Label className="text-xs font-black uppercase text-slate-500">{t('calendar.dialog.hours')}</Label>
                                     <Select onValueChange={setHours} value={hours}>
                                         <SelectTrigger className="h-12 bg-slate-100 border-slate-200 rounded-xl">
                                             <SelectValue />
@@ -436,30 +438,30 @@ export default function TimesheetCalendar() {
                                             {[0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 5.5, 6.0, 6.5, 7.0]
                                                 .filter(h => h <= (7 - (date ? getDayTotal(date) : 0)))
                                                 .map(h => (
-                                                    <SelectItem key={h} value={h.toString()}>{h} Hours</SelectItem>
+                                                    <SelectItem key={h} value={h.toString()}>{h} {t('calendar.dialog.hours')}</SelectItem>
                                                 ))}
                                         </SelectContent>
                                     </Select>
                                 </div>
                                 {!editingId && (
                                     <div className="grid gap-2">
-                                        <Label className="text-xs font-black uppercase text-slate-500">Repeat</Label>
+                                        <Label className="text-xs font-black uppercase text-slate-500">{t('calendar.dialog.repeat')}</Label>
                                         <Select onValueChange={setRecurringType} value={recurringType}>
                                             <SelectTrigger className="h-12 bg-slate-100 border-slate-200 rounded-xl">
                                                 <SelectValue />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                <SelectItem value="none">One Time Only</SelectItem>
-                                                <SelectItem value="weekly">Daily until End of Week (Fri)</SelectItem>
-                                                <SelectItem value="monthly">Daily until End of Month</SelectItem>
+                                                <SelectItem value="none">{t('calendar.dialog.repeat.none')}</SelectItem>
+                                                <SelectItem value="weekly">{t('calendar.dialog.repeat.weekly')}</SelectItem>
+                                                <SelectItem value="monthly">{t('calendar.dialog.repeat.monthly')}</SelectItem>
                                             </SelectContent>
                                         </Select>
                                     </div>
                                 )}
                                 <div className="grid gap-2">
-                                    <Label className="text-xs font-black uppercase text-slate-500">Description</Label>
+                                    <Label className="text-xs font-black uppercase text-slate-500">{t('calendar.dialog.description')}</Label>
                                     <Textarea
-                                        placeholder="What did you work on?"
+                                        placeholder={t('calendar.dialog.placeholder')}
                                         value={description}
                                         onChange={e => setDescription(e.target.value)}
                                         className="min-h-[100px] bg-slate-100 border-slate-200 resize-none rounded-xl"
@@ -471,7 +473,7 @@ export default function TimesheetCalendar() {
 
                     <DialogFooter className="p-8 bg-slate-100 border-t gap-3 sm:gap-0">
                         <Button variant="outline" onClick={() => { setIsDialogOpen(false); resetForm(); }} className="h-12 px-6 border-slate-300 font-black uppercase text-xs tracking-widest rounded-xl">
-                            Close
+                            {t('calendar.dialog.close')}
                         </Button>
                         <Button
                             onClick={handleSave}
@@ -479,7 +481,7 @@ export default function TimesheetCalendar() {
                             className="h-12 px-8 bg-primary hover:bg-orange-600 text-white font-black uppercase text-xs tracking-widest rounded-xl ml-2 shadow-lg shadow-primary/20"
                         >
                             {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                            {editingId ? 'Save Changes' : 'Log Work'}
+                            {editingId ? t('calendar.dialog.save') : t('calendar.dialog.log')}
                         </Button>
                     </DialogFooter>
                 </DialogContent>

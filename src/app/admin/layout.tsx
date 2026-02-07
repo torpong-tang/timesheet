@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils"
 import { Users, FolderKanban, Calendar, ArrowLeft, ShieldAlert } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
+
 export default function AdminLayout({
     children,
 }: {
@@ -68,7 +69,8 @@ export default function AdminLayout({
 
             {/* Main Content */}
             <main className="flex-1 md:ml-64 p-8 min-h-screen">
-                <div className="max-w-7xl mx-auto">
+                <div className="max-w-7xl mx-auto space-y-6">
+
                     {children}
                 </div>
             </main>

@@ -29,6 +29,9 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select"
+import { Combobox } from "@/components/ui/combobox"
+import { Switch } from "@/components/ui/switch"
+import { useLanguage } from "@/components/providers/language-provider"
 import { toast } from "sonner"
 import { Loader2, Plus, Pencil, Trash2, Search, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react"
 
@@ -49,7 +52,9 @@ const HighlightText = ({ text, highlight }: { text: string, highlight: string })
     )
 }
 
+
 export default function UsersPage() {
+    const { t, language } = useLanguage()
     const [users, setUsers] = useState<User[]>([])
     const [loading, setLoading] = useState(true)
     const [isDialogOpen, setIsDialogOpen] = useState(false)
@@ -199,13 +204,13 @@ export default function UsersPage() {
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                     <h1 className="text-4xl font-black tracking-tight text-slate-900 mb-1">
-                        Team <span className="text-primary italic">Members</span>
+                        {language === 'en' ? <>Team <span className="text-primary italic">Members</span></> : <span className="text-primary">{t('users.title')}</span>}
                     </h1>
-                    <p className="text-slate-500 font-medium">Manage access control and user registrations</p>
+                    <p className="text-slate-500 font-medium">{t('users.subtitle')}</p>
                 </div>
                 <Button onClick={handleAdd} className="shadow-lg shadow-primary/25 bg-primary hover:bg-orange-600 rounded-xl">
                     <Plus className="mr-2 h-4 w-4" />
-                    Add User
+                    {t('users.add')}
                 </Button>
             </div>
 
@@ -223,7 +228,7 @@ export default function UsersPage() {
                     </div>
                     <div className="flex justify-end items-center gap-4">
                         <span className="text-xs font-black uppercase text-slate-500 tracking-widest hidden md:inline">
-                            Total {processedUsers.length} Users
+                            {t('users.total')} {processedUsers.length}
                         </span>
                     </div>
                 </div>
@@ -234,21 +239,21 @@ export default function UsersPage() {
                         <TableHeader className="bg-slate-100/50">
                             <TableRow className="hover:bg-transparent border-slate-100">
                                 <TableHead className="font-bold text-slate-900 cursor-pointer hover:text-primary transition-colors" onClick={() => handleSort('userlogin')}>
-                                    User Login <SortIcon column="userlogin" />
+                                    {t('users.table.login')} <SortIcon column="userlogin" />
                                 </TableHead>
                                 <TableHead className="font-bold text-slate-900 cursor-pointer hover:text-primary transition-colors" onClick={() => handleSort('name')}>
-                                    Name <SortIcon column="name" />
+                                    {t('users.table.name')} <SortIcon column="name" />
                                 </TableHead>
                                 <TableHead className="font-bold text-slate-900 cursor-pointer hover:text-primary transition-colors" onClick={() => handleSort('email')}>
-                                    Contact Info <SortIcon column="email" />
+                                    {t('users.table.contact')} <SortIcon column="email" />
                                 </TableHead>
                                 <TableHead className="font-bold text-slate-900 cursor-pointer hover:text-primary transition-colors" onClick={() => handleSort('role')}>
-                                    Role <SortIcon column="role" />
+                                    {t('users.table.role')} <SortIcon column="role" />
                                 </TableHead>
                                 <TableHead className="font-bold text-slate-900">
-                                    Status
+                                    {t('users.table.status')}
                                 </TableHead>
-                                <TableHead className="text-right font-bold text-slate-900 px-6">Actions</TableHead>
+                                <TableHead className="text-right font-bold text-slate-900 px-6">{t('common.actions')}</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -264,7 +269,7 @@ export default function UsersPage() {
                             ) : paginatedUsers.length === 0 ? (
                                 <TableRow>
                                     <TableCell colSpan={6} className="h-32 text-center text-slate-500 font-medium italic">
-                                        No matching users found.
+                                        {t('common.loading')}
                                     </TableCell>
                                 </TableRow>
                             ) : paginatedUsers.map((user) => (
@@ -293,7 +298,7 @@ export default function UsersPage() {
                                     </TableCell>
                                     <TableCell>
                                         <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-bold ring-1 ring-inset ${(user as any).status === 'Disable' ? 'bg-slate-100 text-slate-600 ring-slate-500/10' : 'bg-emerald-50 text-emerald-700 ring-emerald-600/20'}`}>
-                                            {(user as any).status || "Enable"}
+                                            {(user as any).status === 'Enable' ? t('status.enable') : t('status.disable')}
                                         </span>
                                     </TableCell>
                                     <TableCell className="text-right px-6">
@@ -342,13 +347,13 @@ export default function UsersPage() {
                 <DialogContent className="sm:max-w-[500px] bg-slate-50 border-none shadow-2xl p-0 overflow-hidden">
                     <DialogHeader className="p-6 bg-slate-100 border-b">
                         <DialogTitle className="text-2xl font-black text-slate-900">
-                            {editingId ? "Edit User Account" : "Register New Member"}
+                            {editingId ? t('users.dialog.edit') : t('users.dialog.add')}
                         </DialogTitle>
                     </DialogHeader>
                     <div className="grid gap-6 p-6">
                         <div className="grid grid-cols-2 gap-4">
                             <div className="grid gap-2">
-                                <Label className="text-xs font-black uppercase text-slate-500">User Login</Label>
+                                <Label className="text-xs font-black uppercase text-slate-500">{t('users.form.login')}</Label>
                                 <Input
                                     value={formData.userlogin}
                                     onChange={e => setFormData({ ...formData, userlogin: e.target.value })}
@@ -357,36 +362,36 @@ export default function UsersPage() {
                                 />
                             </div>
                             <div className="grid gap-2">
-                                <Label className="text-xs font-black uppercase text-slate-500">Role</Label>
-                                <Select value={formData.role} onValueChange={v => setFormData({ ...formData, role: v })}>
-                                    <SelectTrigger className="bg-slate-100 border-slate-200">
-                                        <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="DEV">Developer</SelectItem>
-                                        <SelectItem value="PM">Project Manager</SelectItem>
-                                        <SelectItem value="GM">General Manager</SelectItem>
-                                        <SelectItem value="ADMIN">Admin</SelectItem>
-                                    </SelectContent>
-                                </Select>
+                                <Label className="text-xs font-black uppercase text-slate-500">{t('users.form.role')}</Label>
+                                <Combobox
+                                    value={formData.role}
+                                    onChange={(v) => setFormData({ ...formData, role: v })}
+                                    options={[
+                                        { label: "Developer", value: "DEV" },
+                                        { label: "Project Manager", value: "PM" },
+                                        { label: "General Manager", value: "GM" },
+                                        { label: "Admin", value: "ADMIN" }
+                                    ]}
+                                    placeholder="Select Role"
+                                />
                             </div>
                         </div>
                         <div className="grid grid-cols-2 gap-4">
                             <div className="grid gap-2">
-                                <Label className="text-xs font-black uppercase text-slate-500">Status</Label>
-                                <Select value={formData.status} onValueChange={v => setFormData({ ...formData, status: v })}>
-                                    <SelectTrigger className="bg-slate-100 border-slate-200">
-                                        <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="Enable">Enable</SelectItem>
-                                        <SelectItem value="Disable">Disable</SelectItem>
-                                    </SelectContent>
-                                </Select>
+                                <Label className="text-xs font-black uppercase text-slate-500">{t('users.form.status')}</Label>
+                                <div className="flex items-center gap-3 h-10">
+                                    <Switch
+                                        checked={formData.status === "Enable"}
+                                        onCheckedChange={(checked) => setFormData({ ...formData, status: checked ? "Enable" : "Disable" })}
+                                    />
+                                    <span className="text-sm font-medium text-slate-600">
+                                        {formData.status === "Enable" ? t('status.enable') : t('status.disable')}
+                                    </span>
+                                </div>
                             </div>
                         </div>
                         <div className="grid gap-2">
-                            <Label className="text-xs font-black uppercase text-slate-500">Full Name</Label>
+                            <Label className="text-xs font-black uppercase text-slate-500">{t('users.form.name')}</Label>
                             <Input
                                 value={formData.name}
                                 onChange={e => setFormData({ ...formData, name: e.target.value })}
@@ -395,7 +400,7 @@ export default function UsersPage() {
                             />
                         </div>
                         <div className="grid gap-2">
-                            <Label className="text-xs font-black uppercase text-slate-500">Email Address</Label>
+                            <Label className="text-xs font-black uppercase text-slate-500">{t('users.form.email')}</Label>
                             <Input
                                 value={formData.email}
                                 onChange={e => setFormData({ ...formData, email: e.target.value })}
@@ -404,7 +409,7 @@ export default function UsersPage() {
                             />
                         </div>
                         <div className="grid gap-2">
-                            <Label className="text-xs font-black uppercase text-slate-500">Password {editingId && "(Optional)"}</Label>
+                            <Label className="text-xs font-black uppercase text-slate-500">{t('users.form.password')} {editingId && "(Optional)"}</Label>
                             <Input
                                 value={formData.password}
                                 onChange={e => setFormData({ ...formData, password: e.target.value })}
@@ -416,11 +421,11 @@ export default function UsersPage() {
                     </div>
                     <DialogFooter className="p-6 bg-slate-100 border-t gap-2 sm:gap-0">
                         <Button variant="outline" onClick={() => setIsDialogOpen(false)} className="border-slate-300 font-bold">
-                            Cancel
+                            {t('common.cancel')}
                         </Button>
                         <Button onClick={handleSave} disabled={saving} className="bg-primary hover:bg-orange-600 text-white font-bold ml-2">
                             {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                            Save User
+                            {t('common.save')}
                         </Button>
                     </DialogFooter>
                 </DialogContent>
