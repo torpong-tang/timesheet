@@ -1,42 +1,41 @@
 @import "tailwindcss";
 
 @theme {
-  --color-background: #e2e8f0;
-  /* Slate 200 */
-  --color-foreground: #0f172a;
-  /* Slate 900 */
+  --color-background: #fafaf9;
+  /* Stone 50 */
+  --color-foreground: #1c1917;
+  /* Stone 900 */
 
-  --color-card: #f8fafc;
-  /* Slate 50 */
-  --color-card-foreground: #0f172a;
+  --color-card: #ffffff;
+  --color-card-foreground: #1c1917;
 
-  --color-popover: #f8fafc;
-  --color-popover-foreground: #0f172a;
+  --color-popover: #ffffff;
+  --color-popover-foreground: #1c1917;
 
-  --color-primary: #f97316;
-  /* Orange 500 */
+  --color-primary: #b45309;
+  /* Amber 700 (Bronze) */
   --color-primary-foreground: #ffffff;
 
-  --color-secondary: #3b82f6;
-  /* Blue 500 */
+  --color-secondary: #57534e;
+  /* Stone 600 */
   --color-secondary-foreground: #ffffff;
 
-  --color-muted: #cbd5e1;
-  /* Slate 300 */
-  --color-muted-foreground: #475569;
-  /* Slate 600 */
+  --color-muted: #e7e5e4;
+  /* Stone 200 */
+  --color-muted-foreground: #78716c;
+  /* Stone 500 */
 
-  --color-accent: #cbd5e1;
-  /* Slate 300 */
-  --color-accent-foreground: #0f172a;
+  --color-accent: #f5f5f4;
+  /* Stone 100 */
+  --color-accent-foreground: #1c1917;
 
-  --color-destructive: #ef4444;
+  --color-destructive: #991b1b;
   --color-destructive-foreground: #ffffff;
 
-  --color-border: #cbd5e1;
-  /* Slate 300 */
-  --color-input: #cbd5e1;
-  --color-ring: #f97316;
+  --color-border: #d6d3d1;
+  /* Stone 300 */
+  --color-input: #d6d3d1;
+  --color-ring: #b45309;
 
   --radius-lg: 0.75rem;
   --radius-md: 0.5rem;
@@ -49,57 +48,57 @@
 
 @layer base {
   * {
-    border-color: hsl(var(--border));
+    border-color: var(--color-border);
   }
 
   body {
-    background-color: hsl(var(--background));
-    color: hsl(var(--foreground));
-    /* Medium Grey Gradient */
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    /* Luxury Champagne Gradient */
     background:
-      radial-gradient(circle at 10% 20%, rgba(255, 140, 0, 0.05) 0%, transparent 40%),
-      radial-gradient(circle at 90% 80%, rgba(0, 119, 255, 0.05) 0%, transparent 40%),
-      linear-gradient(135deg, #e2e8f0 0%, #f1f5f9 100%);
+      radial-gradient(circle at 15% 25%, rgba(180, 83, 9, 0.05) 0%, transparent 45%),
+      radial-gradient(circle at 85% 75%, rgba(120, 53, 15, 0.05) 0%, transparent 45%),
+      linear-gradient(135deg, #fafaf9 0%, #f5f5f4 100%);
     min-height: 100vh;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   }
 }
 
-/* Glassmorphism Utilities - Enhanced with better contrast */
+/* Glassmorphism Utilities - Luxury Edition */
 .glass {
-  @apply bg-white/70 backdrop-blur-xl border border-white/40 shadow-xl;
+  @apply bg-white/60 backdrop-blur-xl border border-white/40 shadow-xl shadow-stone-200/50;
 }
 
 .glass-panel {
-  @apply bg-white/80 backdrop-blur-2xl border border-white/50 shadow-2xl rounded-2xl;
+  @apply bg-white/70 backdrop-blur-2xl border border-white/60 shadow-2xl shadow-stone-300/40 rounded-2xl;
 }
 
 .glass-card {
-  @apply bg-white/90 backdrop-blur-md border border-slate-200/60 shadow-lg hover:shadow-xl transition-all duration-300;
+  @apply bg-white/80 backdrop-blur-md border border-stone-200/60 shadow-lg shadow-stone-200/30 hover:shadow-xl hover:shadow-stone-200/50 transition-all duration-300;
 }
 
-/* Calendar Specifics */
+/* Calendar Specifics - Gold Theme */
 .calendar-today {
-  @apply !bg-amber-100 !ring-2 !ring-amber-500 !font-bold !text-amber-900 !rounded-full;
+  @apply !bg-amber-50 !ring-2 !ring-amber-600 !font-bold !text-amber-900 !rounded-full;
 }
 
 .rdp-day_today {
-  @apply !bg-amber-100 !ring-2 !ring-amber-500 !font-bold !text-amber-900 !rounded-full;
+  @apply !bg-amber-50 !ring-2 !ring-amber-600 !font-bold !text-amber-900 !rounded-full;
 }
 
 .rdp-day_selected {
-  @apply bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground focus:bg-primary/90 focus:text-primary-foreground rounded-full shadow-md;
+  @apply bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground focus:bg-primary/90 focus:text-primary-foreground rounded-full shadow-lg shadow-primary/30;
 }
 
-/* Custom Nav Link */
+/* Custom Nav Link - Stone/Bronze */
 .nav-link {
-  @apply flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 font-medium whitespace-nowrap;
+  @apply flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 font-medium whitespace-nowrap;
 }
 
 .nav-link-active {
-  @apply bg-primary text-primary-foreground shadow-lg shadow-primary/20;
+  @apply bg-primary text-primary-foreground shadow-lg shadow-primary/25 scale-[1.02];
 }
 
 .nav-link-inactive {
-  @apply text-slate-600 hover:bg-white/50 hover:text-primary;
+  @apply text-stone-500 hover:bg-white/60 hover:text-primary hover:shadow-sm;
 }

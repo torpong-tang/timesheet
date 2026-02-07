@@ -1,23 +1,16 @@
 "use client"
 
 import * as React from "react"
-import { Check, ChevronsUpDown } from "lucide-react"
+import { Check, ChevronsUpDown, Search } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import {
-    Command,
-    CommandEmpty,
-    CommandGroup,
-    CommandInput,
-    CommandItem,
-    CommandList,
-} from "@/components/ui/command"
 import {
     Popover,
     PopoverContent,
     PopoverTrigger,
 } from "@/components/ui/popover"
+import { Input } from "@/components/ui/input"
 
 interface ComboboxProps {
     value?: string
@@ -41,14 +34,31 @@ export function Combobox({
     disabled
 }: ComboboxProps) {
     const [open, setOpen] = React.useState(false)
+    const [searchQuery, setSearchQuery] = React.useState("")
 
     // Find label for current value
     const selectedLabel = React.useMemo(() => {
         return options.find((option) => option.value === value)?.label
     }, [value, options])
 
+    // Filter options based on search query
+    const filteredOptions = React.useMemo(() => {
+        if (!searchQuery.trim()) return options
+        const query = searchQuery.toLowerCase()
+        return options.filter((option) =>
+            option.label.toLowerCase().includes(query)
+        )
+    }, [options, searchQuery])
+
+    // Reset search when popover closes
+    React.useEffect(() => {
+        if (!open) {
+            setSearchQuery("")
+        }
+    }, [open])
+
     return (
-        <Popover open={open} onOpenChange={setOpen}>
+        <Popover open={open} onOpenChange={setOpen} modal={true}>
             <PopoverTrigger asChild>
                 <Button
                     variant="outline"
@@ -62,23 +72,39 @@ export function Combobox({
                 </Button>
             </PopoverTrigger>
             <PopoverContent className="w-full p-0 min-w-[200px]" align="start">
-                <Command>
-                    <CommandInput placeholder={searchPlaceholder} />
-                    <CommandList>
-                        <CommandEmpty>{emptyText}</CommandEmpty>
-                        <CommandGroup>
-                            {options.map((option) => (
-                                <CommandItem
+                <div className="flex flex-col">
+                    {/* Search Input */}
+                    <div className="flex items-center border-b px-3">
+                        <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
+                        <Input
+                            placeholder={searchPlaceholder}
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="h-11 border-0 bg-transparent py-3 text-sm outline-none ring-0 focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground"
+                        />
+                    </div>
+
+                    {/* Options List */}
+                    <div className="max-h-[300px] overflow-y-auto overflow-x-hidden p-1">
+                        {filteredOptions.length === 0 ? (
+                            <div className="py-6 text-center text-sm text-muted-foreground">
+                                {emptyText}
+                            </div>
+                        ) : (
+                            filteredOptions.map((option) => (
+                                <div
                                     key={option.value}
-                                    value={option.label} // Search by label
-                                    onSelect={(currentValue) => {
-                                        // currentValue is the label (lowercase) from cmdk
-                                        // We need to find the matching option value
-                                        const matchingOption = options.find(o => o.label.toLowerCase() === currentValue.toLowerCase())
-                                        if (matchingOption) {
-                                            onChange(matchingOption.value === value ? "" : matchingOption.value)
-                                            setOpen(false)
-                                        }
+                                    role="option"
+                                    aria-selected={value === option.value}
+                                    className={cn(
+                                        "relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground",
+                                        value === option.value && "bg-accent text-accent-foreground"
+                                    )}
+                                    onMouseDown={(e) => {
+                                        e.preventDefault()
+                                        e.stopPropagation()
+                                        onChange(option.value === value ? "" : option.value)
+                                        setOpen(false)
                                     }}
                                 >
                                     <Check
@@ -88,11 +114,11 @@ export function Combobox({
                                         )}
                                     />
                                     {option.label}
-                                </CommandItem>
-                            ))}
-                        </CommandGroup>
-                    </CommandList>
-                </Command>
+                                </div>
+                            ))
+                        )}
+                    </div>
+                </div>
             </PopoverContent>
         </Popover>
     )

@@ -26,26 +26,16 @@ export async function getDashboardStats(): Promise<DashboardStats> {
     const endPrevMonth = endOfMonth(subMonths(now, 1))
 
     // 1. Fetch Hours Logic based on Role
-    let whereClause: any = {
+    // REFACTOR: All main dashboard stats should be PERSONAL for the user, regardless of Role.
+    // Managers use the TeamView component for Team data.
+    const whereClause: any = {
+        userId: userId,
         date: { gte: startMonth, lte: endMonth }
     }
-    let prevWhereClause: any = {
+    const prevWhereClause: any = {
+        userId: userId,
         date: { gte: startPrevMonth, lte: endPrevMonth }
     }
-
-    if (role === 'DEV') {
-        whereClause.userId = userId
-        prevWhereClause.userId = userId
-    } else if (role === 'PM') {
-        const assignments = await prisma.projectAssignment.findMany({
-            where: { userId },
-            select: { projectId: true }
-        })
-        const projectIds = assignments.map(a => a.projectId)
-        whereClause.projectId = { in: projectIds }
-        prevWhereClause.projectId = { in: projectIds }
-    }
-    // GM/ADMIN sees all (no extra filter)
 
     // A. Total Hours (Current Month)
     const entries = await prisma.timesheetEntry.findMany({
@@ -97,19 +87,10 @@ export async function getDashboardStats(): Promise<DashboardStats> {
     })).sort((a, b) => b.hours - a.hours)
 
 
-    // D. Recent Activity (Last 5 logs relevant to user)
-    // Re-use logic for visibility but fetch recent dates
-    let activityWhere: any = {}
-    if (role === 'DEV') {
-        activityWhere.userId = userId
-    } else if (role === 'PM') {
-        const assignments = await prisma.projectAssignment.findMany({ where: { userId }, select: { projectId: true } })
-        activityWhere.projectId = { in: assignments.map(a => a.projectId) }
-    }
-    // GM sees all
-
+    // D. Recent Activity (Personal Only for consistency with Hours)
+    // Team Activity is handled by TeamView component
     const recentActivityRaw = await prisma.timesheetEntry.findMany({
-        where: activityWhere,
+        where: { userId },
         orderBy: { date: 'desc' },
         take: 5,
         include: { project: { select: { code: true } } }
@@ -165,5 +146,213 @@ export async function getDashboardStats(): Promise<DashboardStats> {
         recentActivity,
         projectStatus,
         workableHoursMonth
+    }
+}
+
+export type TeamUserStat = {
+    userId: string
+    name: string
+    image: string | null
+    totalHours: number
+    workableHours: number
+    isComplete: boolean
+    percentage: number
+}
+
+export type TeamEntry = {
+    id: string
+    date: Date
+    hours: number
+    description: string
+    project: { code: string; name: string }
+    user: { name: string; image: string | null }
+}
+
+export async function getTeamData(
+    monthDate: Date,
+    filterUserId?: string,
+    filterProjectId?: string
+) {
+    const session = await getServerSession(authOptions)
+    if (!session) throw new Error("Unauthorized")
+
+    const { role, id: currentUserId } = session.user
+    if (role === 'DEV') return { users: [], entries: [] }
+
+    const start = startOfMonth(monthDate)
+    const end = endOfMonth(monthDate)
+
+    // 1. Determine Scope
+    let allowedProjectIds: string[] | undefined = undefined
+    let allowedUserIds: string[] | undefined = undefined
+
+    if (role === 'PM') {
+        const assignments = await prisma.projectAssignment.findMany({
+            where: { userId: currentUserId },
+            select: { projectId: true }
+        })
+        allowedProjectIds = assignments.map(a => a.projectId)
+
+        const usersInProjects = await prisma.projectAssignment.findMany({
+            where: { projectId: { in: allowedProjectIds } },
+            select: { userId: true }
+        })
+        allowedUserIds = Array.from(new Set(usersInProjects.map(u => u.userId)))
+    }
+
+    // 2. Fetch Entries (For Table)
+    const entryWhere: any = {
+        date: { gte: start, lte: end }
+    }
+
+    if (allowedProjectIds) {
+        entryWhere.projectId = { in: allowedProjectIds }
+    }
+
+    if (filterUserId) {
+        // Validation: if PM, check if user is in allowedUserIds
+        if (allowedUserIds && !allowedUserIds.includes(filterUserId)) {
+            // force empty
+            entryWhere.userId = "none"
+        } else {
+            entryWhere.userId = filterUserId
+        }
+    }
+
+    if (filterProjectId) {
+        if (allowedProjectIds && !allowedProjectIds.includes(filterProjectId)) {
+            entryWhere.projectId = "none"
+        } else {
+            entryWhere.projectId = filterProjectId
+        }
+    }
+
+    const entriesData = await prisma.timesheetEntry.findMany({
+        where: entryWhere,
+        include: {
+            project: { select: { code: true, name: true } },
+            user: { select: { name: true, image: true } }
+        },
+        orderBy: { date: 'desc' },
+        take: 50 // Limit stats
+    })
+
+    const entries: TeamEntry[] = entriesData.map(e => ({
+        id: e.id,
+        date: e.date,
+        hours: e.hours,
+        description: e.description,
+        project: e.project,
+        user: {
+            name: e.user.name || "Unknown",
+            image: e.user.image
+        }
+    }))
+
+
+    // 3. Fetch User Stats (For Chart) -> Global Hours
+    const holidays = await prisma.holiday.findMany({ where: { date: { gte: start, lte: end } } })
+    const allDays = eachDayOfInterval({ start, end })
+    const workingDays = allDays.filter(day => !isWeekend(day) && !holidays.some(h => isSameDay(h.date, day))).length
+    const workableHours = workingDays * 7
+
+    const userWhere: any = {}
+    if (allowedUserIds) {
+        userWhere.id = { in: allowedUserIds }
+    }
+    // Apply Filter to Chart Users too
+    if (filterUserId) {
+        userWhere.id = filterUserId
+    }
+    if (filterProjectId) {
+        const projectAssigns = await prisma.projectAssignment.findMany({
+            where: { projectId: filterProjectId },
+            select: { userId: true }
+        })
+        const ids = projectAssigns.map(a => a.userId)
+        if (allowedUserIds) {
+            // Intersection
+            userWhere.id = { in: allowedUserIds.filter(id => ids.includes(id)) }
+        } else {
+            userWhere.id = { in: ids }
+        }
+    }
+
+    const users = await prisma.user.findMany({
+        where: userWhere,
+        select: { id: true, name: true, image: true }
+    })
+
+    // Fetch Aggregated Hours per User (Global)
+    const statsData = await prisma.timesheetEntry.groupBy({
+        by: ['userId'],
+        where: {
+            date: { gte: start, lte: end },
+            userId: { in: users.map(u => u.id) }
+        },
+        _sum: { hours: true }
+    })
+
+    const userStats: TeamUserStat[] = users.map(u => {
+        const found = statsData.find(s => s.userId === u.id)
+        const total = found?._sum.hours || 0
+        return {
+            userId: u.id,
+            name: u.name || "Unknown",
+            image: u.image,
+            totalHours: total,
+            workableHours,
+            isComplete: total >= workableHours,
+            percentage: Math.min((total / workableHours) * 100, 100)
+        }
+    })
+
+    return {
+        users: userStats.sort((a, b) => b.percentage - a.percentage),
+        entries
+    }
+}
+
+export async function getFilters() {
+    const session = await getServerSession(authOptions)
+    if (!session) return { users: [], projects: [] }
+    const { role, id } = session.user
+
+    if (role === 'DEV') return { users: [], projects: [] }
+
+    let projectWhere: any = {}
+    let userWhere: any = {}
+
+    if (role === 'PM') {
+        const assignments = await prisma.projectAssignment.findMany({
+            where: { userId: id },
+            select: { projectId: true }
+        })
+        const pIds = assignments.map(a => a.projectId)
+        projectWhere.id = { in: pIds }
+
+        // Find users in those projects
+        const uAssigns = await prisma.projectAssignment.findMany({
+            where: { projectId: { in: pIds } },
+            select: { userId: true }
+        })
+        userWhere.id = { in: uAssigns.map(a => a.userId) }
+    }
+
+    const projects = await prisma.project.findMany({
+        where: projectWhere,
+        select: { id: true, name: true, code: true },
+        orderBy: { code: 'asc' }
+    })
+
+    const users = await prisma.user.findMany({
+        where: userWhere,
+        select: { id: true, name: true, userlogin: true },
+        orderBy: { name: 'asc' }
+    })
+
+    return {
+        users: users.map(u => ({ id: u.id, name: u.name || u.userlogin })),
+        projects: projects.map(p => ({ id: p.id, name: p.name, code: p.code }))
     }
 }

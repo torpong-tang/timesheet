@@ -8,9 +8,12 @@ import { Loader2, TrendingUp, TrendingDown, Clock, Briefcase, Calendar, Activity
 import { format } from "date-fns"
 import { cn, formatDuration } from "@/lib/utils"
 import { LanguageSwitcher } from "@/components/language-switcher"
+import { useLanguage } from "@/components/providers/language-provider"
+import { TeamView } from "@/components/dashboard/team-view"
 
 export default function DashboardPage() {
     const { data: session } = useSession()
+    const { t } = useLanguage()
     const [stats, setStats] = useState<DashboardStats | null>(null)
     const [loading, setLoading] = useState(true)
 
@@ -52,11 +55,11 @@ export default function DashboardPage() {
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
                     <h1 className="text-4xl font-black tracking-tight text-slate-900 mb-2">
-                        Dashboard <span className="text-primary italic">Overview</span>
+                        {t('dash.title')} <span className="text-primary italic">{t('dash.subtitle')}</span>
                     </h1>
                     <p className="text-slate-500 font-medium">
-                        Welcome back, <span className="text-slate-900 font-bold">{session?.user?.name}</span>.
-                        Here's what's happening {isManager ? "with your team" : "with your work"}.
+                        {t('dash.welcome')} <span className="text-slate-900 font-bold">{session?.user?.name}</span>.
+                        {isManager ? t('dash.desc.manager') : t('dash.desc.user')}
                     </p>
                 </div>
                 <LanguageSwitcher />
@@ -71,7 +74,7 @@ export default function DashboardPage() {
                     </div>
                     <CardHeader className="pb-2">
                         <CardTitle className="text-sm font-black text-slate-500 uppercase tracking-widest">
-                            {isManager ? "Team Hours (This Month)" : "My Hours (This Month)"}
+                            {t('dash.hours.user')}
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
@@ -80,7 +83,7 @@ export default function DashboardPage() {
                         </div>
                         <div className={cn("flex items-center text-sm font-bold gap-1", growth >= 0 ? "text-green-400" : "text-red-500")}>
                             {growth >= 0 ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
-                            {Math.abs(Number(growthPercent))}% from last month
+                            {Math.abs(Number(growthPercent))}% {growth >= 0 ? t('dash.growth.up') : t('dash.growth.down')}
                         </div>
                     </CardContent>
                 </Card>
@@ -92,7 +95,7 @@ export default function DashboardPage() {
                     </div>
                     <CardHeader className="pb-2">
                         <CardTitle className="text-sm font-black text-slate-500 uppercase tracking-widest">
-                            Active Projects
+                            {t('dash.projects.title')}
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
@@ -100,19 +103,24 @@ export default function DashboardPage() {
                             {stats.topProjects.length}
                         </div>
                         <p className="text-slate-500 font-medium text-sm">
-                            Projects with logged time this month
+                            {t('dash.projects.desc')}
                         </p>
                     </CardContent>
                 </Card>
 
                 {/* Monthly Progress / Completion Card */}
-                <Card className="bg-gradient-to-br from-primary to-orange-600 text-white border-none shadow-xl shadow-orange-200 rounded-3xl overflow-hidden relative">
+                <Card className={cn(
+                    "text-white border-none shadow-xl rounded-3xl overflow-hidden relative transition-all duration-500",
+                    stats.totalHoursMonth >= stats.workableHoursMonth
+                        ? "bg-gradient-to-br from-emerald-500 to-green-600 shadow-green-200"
+                        : "bg-gradient-to-br from-primary to-amber-600 shadow-primary/30"
+                )}>
                     <div className="absolute top-0 right-0 p-4 opacity-20">
                         <Activity className="w-32 h-32 text-white" />
                     </div>
                     <CardHeader className="pb-2">
                         <CardTitle className="text-sm font-black text-white/80 uppercase tracking-widest">
-                            Monthly Capacity
+                            {t('dash.capacity.title')}
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
@@ -133,9 +141,9 @@ export default function DashboardPage() {
                         </div>
 
                         <p className="text-white font-bold text-sm flex justify-between">
-                            <span>{((stats.totalHoursMonth / stats.workableHoursMonth) * 100).toFixed(0)}% Complete</span>
+                            <span>{((stats.totalHoursMonth / stats.workableHoursMonth) * 100).toFixed(0)}% {t('dash.complete')}</span>
                             <span className="opacity-80">
-                                {Math.max(stats.workableHoursMonth - stats.totalHoursMonth, 0).toFixed(1)}h Remaining
+                                {Math.max(stats.workableHoursMonth - stats.totalHoursMonth, 0).toFixed(1)}h {t('dash.remaining')}
                             </span>
                         </p>
                     </CardContent>
@@ -148,9 +156,9 @@ export default function DashboardPage() {
                     <CardHeader className="bg-slate-100/50 border-b border-slate-100">
                         <CardTitle className="text-lg font-black text-slate-900 flex items-center gap-2">
                             <Briefcase className="w-5 h-5 text-primary" />
-                            Top Projects
+                            {t('dash.top_projects')}
                         </CardTitle>
-                        <CardDescription>Most time consumed this month</CardDescription>
+                        <CardDescription>{t('dash.top_projects.desc')}</CardDescription>
                     </CardHeader>
                     <CardContent className="p-0">
                         <div className="flex flex-col">
@@ -165,13 +173,13 @@ export default function DashboardPage() {
                                     <div className="flex items-center gap-4">
                                         <div className="text-right">
                                             <span className="block font-black text-lg text-slate-900">{formatDuration(proj.hours)}</span>
-                                            <span className="text-xs text-slate-500 font-bold">LOGGED</span>
+                                            <span className="text-xs text-slate-500 font-bold">{t('dash.logged')}</span>
                                         </div>
                                     </div>
                                 </div>
                             ))}
                             {stats.topProjects.length === 0 && (
-                                <div className="p-10 text-center text-slate-500 font-medium italic">No activity recorded yet.</div>
+                                <div className="p-10 text-center text-slate-500 font-medium italic">{t('dash.no_activity')}</div>
                             )}
                         </div>
                     </CardContent>
@@ -182,9 +190,9 @@ export default function DashboardPage() {
                     <CardHeader className="bg-slate-100/50 border-b border-slate-100">
                         <CardTitle className="text-lg font-black text-slate-900 flex items-center gap-2">
                             <Calendar className="w-5 h-5 text-primary" />
-                            Recent Activity
+                            {t('dash.recent')}
                         </CardTitle>
-                        <CardDescription>Latest logs {isManager ? "from your team" : "from you"}</CardDescription>
+                        <CardDescription>{t('dash.recent.desc.user')}</CardDescription>
                     </CardHeader>
                     <CardContent className="p-0">
                         <div className="flex flex-col">
@@ -206,7 +214,7 @@ export default function DashboardPage() {
                                 </div>
                             ))}
                             {stats.recentActivity.length === 0 && (
-                                <div className="p-10 text-center text-slate-500 font-medium italic">No recent logs.</div>
+                                <div className="p-10 text-center text-slate-500 font-medium italic">{t('dash.no_logs')}</div>
                             )}
                         </div>
                     </CardContent>
@@ -215,6 +223,12 @@ export default function DashboardPage() {
 
             {/* Manager Only: Budget Overview - REMOVED per request */}
             {/* Focus is on hours only now */}
+
+            {isManager && (
+                <div className="pt-4 border-t border-slate-200">
+                    <TeamView />
+                </div>
+            )}
         </div>
     )
 }
