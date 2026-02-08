@@ -222,7 +222,7 @@ export default function ReportsPage() {
             .map(s => JSON.parse(s))
             .sort((a: any, b: any) => (a.name || "").localeCompare(b.name || ""))
 
-        const projects = Array.from(new Set(pData.map(d => JSON.stringify({ id: d.project.code, code: d.project.code, name: d.project.name }))))
+        const projects = Array.from(new Set(pData.map(d => JSON.stringify({ id: d.projectId, code: d.project.code, name: d.project.name }))))
             .map(s => JSON.parse(s))
             .sort((a: any, b: any) => a.code.localeCompare(b.code))
 
