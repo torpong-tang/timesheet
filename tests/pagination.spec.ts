@@ -1,14 +1,11 @@
 import { test, expect } from '@playwright/test';
+import { loginAsAdmin } from './helpers/auth';
 
 test.describe('Pagination Components', () => {
 
     test.beforeEach(async ({ page }) => {
-        // Login as Admin
-        await page.goto('/login');
-        await page.fill('#userlogin', 'Torpong.T');
-        await page.fill('#password', 'password123');
-        await page.click('button[type="submit"]');
-        await expect(page).toHaveURL(/.*dashboard/);
+        // Login as Admin using helper with proper waiting
+        await loginAsAdmin(page);
     });
 
     test('Admin Users Page Pagination', async ({ page }) => {

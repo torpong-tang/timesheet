@@ -191,18 +191,18 @@ export default function TimesheetCalendar() {
         <div className="flex flex-col gap-6 h-full pb-8">
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-4xl font-black tracking-tight text-slate-900 mb-1">
+                    <h1 className="text-4xl font-black tracking-tight text-stone-100 mb-1">
                         {t('cal.title')}
                     </h1>
-                    <p className="text-slate-500 font-medium italic">{t('cal.subtitle')}</p>
+                    <p className="text-stone-400 font-medium italic">{t('cal.subtitle')}</p>
                 </div>
             </div>
 
             <div className="grid grid-cols-12 gap-8 w-full items-start">
                 {/* Calendar Section (9/12 width) */}
                 <div className="col-span-8">
-                    <Card className="bg-slate-50 border-slate-200 shadow-2xl rounded-3xl overflow-hidden flex flex-col">
-                        <CardHeader className="bg-slate-100 border-b border-slate-100 py-8 px-10">
+                    <Card className="bg-stone-800 border-stone-700 shadow-2xl rounded-3xl overflow-hidden flex flex-col">
+                        <CardHeader className="bg-stone-900 border-b border-stone-700 py-8 px-10">
                             <CardTitle className="flex justify-between items-center w-full">
                                 <div className="flex items-center gap-6">
                                     <Button
@@ -211,7 +211,7 @@ export default function TimesheetCalendar() {
                                     >
                                         <ArrowLeft className="h-6 w-6 text-white" strokeWidth={3} />
                                     </Button>
-                                    <div className="text-4xl font-black text-slate-900 min-w-[220px] text-center pb-1 cursor-default select-none">
+                                    <div className="text-4xl font-black text-stone-100 min-w-[220px] text-center pb-1 cursor-default select-none">
                                         {format(currentMonth, "MMMM yyyy")}
                                     </div>
                                     <Button
@@ -223,17 +223,17 @@ export default function TimesheetCalendar() {
                                 </div>
                                 <div className="flex items-center gap-6">
                                     <div className="flex items-center gap-2">
-                                        <div className="w-4 h-4 rounded-full bg-primary/20 border-2 border-primary" />
-                                        <span className="text-sm font-bold text-slate-500">{t('cal.legend.work')}</span>
+                                        <div className="w-4 h-4 rounded-full bg-primary/30 border-2 border-primary" />
+                                        <span className="text-sm font-bold text-stone-400">{t('cal.legend.work')}</span>
                                     </div>
                                     <div className="flex items-center gap-2">
-                                        <div className="w-4 h-4 rounded-full bg-red-100 border-2 border-red-500" />
-                                        <span className="text-sm font-bold text-slate-500">{t('cal.legend.holiday')}</span>
+                                        <div className="w-4 h-4 rounded-full bg-red-900/40 border-2 border-red-500" />
+                                        <span className="text-sm font-bold text-stone-400">{t('cal.legend.holiday')}</span>
                                     </div>
                                 </div>
                             </CardTitle>
                         </CardHeader>
-                        <CardContent className="p-10 flex-1 flex flex-col">
+                        <CardContent className="p-10 flex-1 flex flex-col bg-stone-800">
                             <ShadcnCalendar
                                 mode="single"
                                 selected={date}
@@ -258,14 +258,14 @@ export default function TimesheetCalendar() {
                                     nav: "hidden",
                                     table: "w-full flex-1 border-collapse table-fixed",
                                     head_row: "flex w-full mb-8",
-                                    head_cell: "flex-1 text-slate-600 font-black text-xl uppercase tracking-[0.4em] text-center first:text-red-500 last:text-red-500",
+                                    head_cell: "flex-1 text-stone-300 font-black text-xl uppercase tracking-[0.4em] text-center first:text-red-400 last:text-red-400",
                                     row: "flex w-full mb-4 flex-1 min-h-[140px]",
                                     cell: "flex-1 p-1 h-full",
                                     day: cn(
-                                        "h-full w-full p-0 font-black aria-selected:opacity-100 hover:bg-orange-50 rounded-[2.5rem] transition-all flex flex-col items-center justify-center gap-6 text-4xl border-4 border-transparent text-slate-900"
+                                        "h-full w-full p-0 font-black aria-selected:opacity-100 hover:bg-stone-700/60 rounded-[2.5rem] transition-all flex flex-col items-center justify-center gap-6 text-4xl border-4 border-transparent text-stone-200"
                                     ),
                                     day_selected: "bg-primary text-white hover:bg-primary/90 focus:bg-primary/90 shadow-2xl shadow-primary/40 scale-[1.05] z-10 border-white/30",
-                                    day_today: "border-4 border-amber-300 bg-amber-50",
+                                    day_today: "border-4 border-amber-500/50 bg-amber-900/30",
                                     day_outside: "opacity-10",
                                     day_disabled: "opacity-100 cursor-not-allowed",
                                 }}
@@ -274,8 +274,8 @@ export default function TimesheetCalendar() {
                                     holiday: (d) => isHoliday(d),
                                 }}
                                 modifiersClassNames={{
-                                    weekend: "!text-red-600",
-                                    holiday: "!bg-red-50 !text-slate-900 border-2 border-red-100",
+                                    weekend: "!text-red-400",
+                                    holiday: "!bg-red-900/30 !text-stone-200 border-2 border-red-800/50",
                                 }}
                                 disabled={(d) => isHoliday(d) || isWeekend(d)}
                                 required
@@ -286,12 +286,12 @@ export default function TimesheetCalendar() {
 
                 {/* Daily Details Sidebar (4/12 width) */}
                 <div className="col-span-4">
-                    <Card className="bg-slate-50 border-slate-200 min-h-[600px] flex flex-col shadow-2xl rounded-3xl overflow-hidden">
-                        <CardHeader className="bg-slate-100 border-b border-slate-100 py-8 px-8">
+                    <Card className="bg-stone-800 border-stone-700 min-h-[600px] flex flex-col shadow-2xl rounded-3xl overflow-hidden">
+                        <CardHeader className="bg-stone-900 border-b border-stone-700 py-8 px-8">
                             <CardTitle className="flex justify-between items-center">
                                 <div className="flex flex-col">
                                     <span className="text-xs font-black text-primary uppercase tracking-[0.2em] mb-2 leading-none">{t('cal.schedule')}</span>
-                                    <span className="text-2xl font-black text-slate-900 tracking-tight">{date ? format(date, 'dd/MM/yyyy') : t('cal.pick_date')}</span>
+                                    <span className="text-2xl font-black text-stone-100 tracking-tight">{date ? format(date, 'dd/MM/yyyy') : t('cal.pick_date')}</span>
                                 </div>
                                 {date && getDayTotal(date) < 7 && !isWeekend(date) && !isHoliday(date) && (
                                     <Button size="icon" className="h-12 w-12 rounded-2xl bg-primary shadow-xl shadow-primary/30 hover:scale-110 active:scale-95 transition-all" onClick={() => setIsDialogOpen(true)}>
@@ -300,55 +300,55 @@ export default function TimesheetCalendar() {
                                 )}
                             </CardTitle>
                         </CardHeader>
-                        <CardContent className="p-8 flex-1 overflow-y-auto space-y-6 bg-slate-100/50">
+                        <CardContent className="p-8 flex-1 overflow-y-auto space-y-6 bg-stone-800/50">
                             {date && getDayEntries(date).map(entry => (
-                                <div key={entry.id} className="group flex flex-col p-6 bg-slate-200 border border-slate-200 rounded-[2rem] shadow-sm hover:shadow-xl transition-all relative border-l-8 border-l-blue-600">
+                                <div key={entry.id} className="group flex flex-col p-6 bg-stone-700 border border-stone-600 rounded-[2rem] shadow-sm hover:shadow-xl transition-all relative border-l-8 border-l-blue-500">
                                     <div className="flex justify-between items-start mb-4">
-                                        <span className="px-3 py-1 bg-blue-100 text-blue-700 text-[11px] font-black rounded-lg uppercase tracking-wider">
+                                        <span className="px-3 py-1 bg-blue-900/50 text-blue-300 text-[11px] font-black rounded-lg uppercase tracking-wider">
                                             {entry.project.code}
                                         </span>
                                         <div className="flex items-center gap-3">
                                             <span className="text-2xl font-black text-primary">{formatDuration(entry.hours)}</span>
                                             <div className="flex gap-1">
-                                                <Button variant="ghost" size="icon" className="h-10 w-10 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-colors" onClick={() => handleEdit(entry)}>
+                                                <Button variant="ghost" size="icon" className="h-10 w-10 text-stone-400 hover:text-blue-400 hover:bg-blue-900/30 rounded-full transition-colors" onClick={() => handleEdit(entry)}>
                                                     <Pencil className="h-4 w-4" />
                                                 </Button>
-                                                <Button variant="ghost" size="icon" className="h-10 w-10 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors" onClick={() => handleDelete(entry.id)}>
+                                                <Button variant="ghost" size="icon" className="h-10 w-10 text-stone-400 hover:text-red-400 hover:bg-red-900/30 rounded-full transition-colors" onClick={() => handleDelete(entry.id)}>
                                                     <Trash2 className="h-5 w-5" />
                                                 </Button>
                                             </div>
                                         </div>
                                     </div>
-                                    <p className="text-base font-bold text-slate-700 leading-relaxed line-clamp-3">{entry.description}</p>
+                                    <p className="text-base font-bold text-stone-300 leading-relaxed line-clamp-3">{entry.description}</p>
                                 </div>
                             ))}
                             {date && getDayEntries(date).length === 0 && (
-                                <div className="flex flex-col items-center justify-center py-32 text-center opacity-30">
-                                    <div className="w-24 h-24 bg-slate-200 rounded-[2.5rem] flex items-center justify-center mb-6 border-4 border-white shadow-inner">
-                                        <Plus className="h-12 w-12 text-slate-500" />
+                                <div className="flex flex-col items-center justify-center py-32 text-center opacity-40">
+                                    <div className="w-24 h-24 bg-stone-700 rounded-[2.5rem] flex items-center justify-center mb-6 border-4 border-stone-600 shadow-inner">
+                                        <Plus className="h-12 w-12 text-stone-400" />
                                     </div>
-                                    <p className="text-slate-500 font-black uppercase tracking-[0.3em] text-sm">{t('cal.empty')}</p>
+                                    <p className="text-stone-400 font-black uppercase tracking-[0.3em] text-sm">{t('cal.empty')}</p>
                                 </div>
                             )}
                         </CardContent>
                         {date && !isWeekend(date) && !isHoliday(date) && (
-                            <div className="p-10 bg-slate-50 border-t border-slate-100 mt-auto">
+                            <div className="p-10 bg-stone-900 border-t border-stone-700 mt-auto">
                                 <div className="flex justify-between items-end mb-6">
                                     <div className="flex flex-col">
-                                        <span className="text-xs font-black text-slate-500 uppercase tracking-widest mb-2">{t('cal.progress')}</span>
-                                        <span className="text-4xl font-black text-slate-900 tracking-tighter">
+                                        <span className="text-xs font-black text-stone-400 uppercase tracking-widest mb-2">{t('cal.progress')}</span>
+                                        <span className="text-4xl font-black text-stone-100 tracking-tighter">
                                             {formatDuration(getDayTotal(date))}
-                                            <span className="text-slate-600 text-lg ml-2 font-black uppercase">/ 7h (1d)</span>
+                                            <span className="text-stone-400 text-lg ml-2 font-black uppercase">/ 7h (1d)</span>
                                         </span>
                                     </div>
                                     <div className={cn(
                                         "px-4 py-2 rounded-2xl text-xs font-black uppercase tracking-widest shadow-sm",
-                                        getDayTotal(date) >= 7 ? "bg-green-600 text-white" : "bg-amber-100 text-amber-700"
+                                        getDayTotal(date) >= 7 ? "bg-green-600 text-white" : "bg-amber-900/50 text-amber-400"
                                     )}>
                                         {getDayTotal(date) >= 7 ? t('cal.full') : t('cal.work')}
                                     </div>
                                 </div>
-                                <div className="w-full h-5 bg-slate-200 rounded-full overflow-hidden shadow-inner border-2 border-white">
+                                <div className="w-full h-5 bg-stone-700 rounded-full overflow-hidden shadow-inner border-2 border-stone-600">
                                     <div
                                         className={cn("h-full transition-all duration-1000 cubic-bezier(0.4, 0, 0.2, 1)", getDayTotal(date) >= 7 ? "bg-green-600" : "bg-primary")}
                                         style={{ width: `${Math.min((getDayTotal(date) / 7) * 100, 100)}%` }}
@@ -365,16 +365,16 @@ export default function TimesheetCalendar() {
 
 
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                <DialogContent className="sm:max-w-[700px] bg-slate-50 border-none shadow-2xl p-0 overflow-hidden">
-                    <DialogHeader className="p-8 bg-slate-100 border-b">
+                <DialogContent className="sm:max-w-[700px] bg-stone-800 border-stone-700 shadow-2xl p-0 overflow-hidden">
+                    <DialogHeader className="p-8 bg-stone-900 border-b border-stone-700">
                         <div className="flex justify-between items-start">
                             <div>
-                                <DialogTitle className="text-3xl font-black text-slate-900 mb-1">{editingId ? t('cal.edit_title') : t('cal.log_title')}</DialogTitle>
-                                <DialogDescription className="text-slate-500 font-bold text-lg">
+                                <DialogTitle className="text-3xl font-black text-stone-100 mb-1">{editingId ? t('cal.edit_title') : t('cal.log_title')}</DialogTitle>
+                                <DialogDescription className="text-stone-400 font-bold text-lg">
                                     {date ? format(date, 'EEEE, dd/MM/yyyy') : ''}
                                 </DialogDescription>
                             </div>
-                            <div className="bg-primary/10 px-4 py-2 rounded-2xl flex flex-col items-center">
+                            <div className="bg-primary/20 px-4 py-2 rounded-2xl flex flex-col items-center">
                                 <span className="text-[10px] font-black text-primary uppercase">{t('cal.total_hours')}</span>
                                 <span className="text-2xl font-black text-primary">{date ? formatDuration(getDayTotal(date)) : 0} / 7h</span>
                             </div>
@@ -383,18 +383,18 @@ export default function TimesheetCalendar() {
 
                     <div className="grid grid-cols-1 md:grid-cols-2">
                         {/* Summary List */}
-                        <div className="p-8 border-r border-slate-100 bg-slate-100/30">
-                            <h3 className="text-sm font-black text-slate-500 uppercase tracking-widest mb-4">{t('cal.recorded')}</h3>
+                        <div className="p-8 border-r border-stone-700 bg-stone-800/50">
+                            <h3 className="text-sm font-black text-stone-400 uppercase tracking-widest mb-4">{t('cal.recorded')}</h3>
                             <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2">
                                 {date && getDayEntries(date).length > 0 ? getDayEntries(date).map(entry => (
-                                    <div key={entry.id} className="bg-slate-50 p-4 rounded-2xl border border-slate-200 shadow-sm relative group">
+                                    <div key={entry.id} className="bg-stone-700 p-4 rounded-2xl border border-stone-600 shadow-sm relative group">
                                         <div className="flex justify-between items-start mb-1">
-                                            <span className="text-[10px] font-black text-blue-600 bg-blue-50 px-2 py-0.5 rounded uppercase">
+                                            <span className="text-[10px] font-black text-blue-300 bg-blue-900/50 px-2 py-0.5 rounded uppercase">
                                                 {entry.project.code}
                                             </span>
                                             <span className="font-black text-primary">{formatDuration(entry.hours)}</span>
                                         </div>
-                                        <p className="text-sm text-slate-600 font-medium line-clamp-2">{entry.description}</p>
+                                        <p className="text-sm text-stone-300 font-medium line-clamp-2">{entry.description}</p>
                                         <Button
                                             variant="ghost"
                                             size="icon"
@@ -405,20 +405,20 @@ export default function TimesheetCalendar() {
                                         </Button>
                                     </div>
                                 )) : (
-                                    <div className="text-center py-12 opacity-20">
-                                        <Plus className="h-12 w-12 mx-auto mb-2" />
-                                        <p className="font-black text-xs uppercase">{t('cal.empty_list')}</p>
+                                    <div className="text-center py-12 opacity-30">
+                                        <Plus className="h-12 w-12 mx-auto mb-2 text-stone-400" />
+                                        <p className="font-black text-xs uppercase text-stone-400">{t('cal.empty_list')}</p>
                                     </div>
                                 )}
                             </div>
                         </div>
 
                         {/* New Entry Form */}
-                        <div className="p-8">
-                            <h3 className="text-sm font-black text-slate-500 uppercase tracking-widest mb-4">{t('cal.add_new')}</h3>
+                        <div className="p-8 bg-stone-800">
+                            <h3 className="text-sm font-black text-stone-400 uppercase tracking-widest mb-4">{t('cal.add_new')}</h3>
                             <div className="space-y-6">
                                 <div className="grid gap-2">
-                                    <Label className="text-xs font-black uppercase text-slate-500">{t('cal.project')}</Label>
+                                    <Label className="text-xs font-black uppercase text-stone-400">{t('cal.project')}</Label>
                                     <Combobox
                                         value={selectedProject}
                                         onChange={setSelectedProject}
@@ -426,13 +426,13 @@ export default function TimesheetCalendar() {
                                         placeholder={t('cal.select_project')}
                                         searchPlaceholder={t('common.search')}
                                         emptyText={t('cal.no_project')}
-                                        className="h-12 bg-slate-100 border-slate-200 rounded-xl"
+                                        className="h-12 bg-stone-700 border-stone-600 rounded-xl text-stone-100"
                                     />
                                 </div>
                                 <div className="grid gap-2">
-                                    <Label className="text-xs font-black uppercase text-slate-500">{t('cal.hours')}</Label>
+                                    <Label className="text-xs font-black uppercase text-stone-400">{t('cal.hours')}</Label>
                                     <Select onValueChange={setHours} value={hours}>
-                                        <SelectTrigger className="h-12 bg-slate-100 border-slate-200 rounded-xl">
+                                        <SelectTrigger className="h-12 bg-stone-700 border-stone-600 rounded-xl text-stone-100">
                                             <SelectValue />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -446,9 +446,9 @@ export default function TimesheetCalendar() {
                                 </div>
                                 {!editingId && (
                                     <div className="grid gap-2">
-                                        <Label className="text-xs font-black uppercase text-slate-500">{t('cal.repeat')}</Label>
+                                        <Label className="text-xs font-black uppercase text-stone-400">{t('cal.repeat')}</Label>
                                         <Select onValueChange={setRecurringType} value={recurringType}>
-                                            <SelectTrigger className="h-12 bg-slate-100 border-slate-200 rounded-xl">
+                                            <SelectTrigger className="h-12 bg-stone-700 border-stone-600 rounded-xl text-stone-100">
                                                 <SelectValue />
                                             </SelectTrigger>
                                             <SelectContent>
@@ -460,20 +460,20 @@ export default function TimesheetCalendar() {
                                     </div>
                                 )}
                                 <div className="grid gap-2">
-                                    <Label className="text-xs font-black uppercase text-slate-500">{t('cal.desc')}</Label>
+                                    <Label className="text-xs font-black uppercase text-stone-400">{t('cal.desc')}</Label>
                                     <Textarea
                                         placeholder={t('cal.placeholder.desc')}
                                         value={description}
                                         onChange={e => setDescription(e.target.value)}
-                                        className="min-h-[100px] bg-slate-100 border-slate-200 resize-none rounded-xl"
+                                        className="min-h-[100px] bg-stone-700 border-stone-600 resize-none rounded-xl text-stone-100 placeholder:total-stone-500"
                                     />
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <DialogFooter className="p-8 bg-slate-100 border-t gap-3 sm:gap-0">
-                        <Button variant="outline" onClick={() => { setIsDialogOpen(false); resetForm(); }} className="h-12 px-6 border-slate-300 font-black uppercase text-xs tracking-widest rounded-xl">
+                    <DialogFooter className="p-8 bg-stone-900 border-t border-stone-700 gap-3 sm:gap-0">
+                        <Button variant="outline" onClick={() => { setIsDialogOpen(false); resetForm(); }} className="h-12 px-6 border-stone-600 text-stone-300 font-black uppercase text-xs tracking-widest rounded-xl hover:bg-stone-700">
                             {t('cal.close')}
                         </Button>
                         <Button

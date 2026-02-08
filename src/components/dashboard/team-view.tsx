@@ -58,7 +58,7 @@ export function TeamView() {
             <div className="flex flex-col md:flex-row items-center justify-between gap-4">
                 <div className="flex items-center gap-2">
                     <BarChart3 className="w-6 h-6 text-primary" />
-                    <h2 className="text-2xl font-bold text-slate-900">{t('team.title') || "Team Overview"}</h2>
+                    <h2 className="text-2xl font-bold text-stone-100">{t('team.title') || "Team Overview"}</h2>
                 </div>
 
                 {/* Filters */}
@@ -83,34 +83,34 @@ export function TeamView() {
             ) : !stats ? null : (
                 <div className="space-y-6">
                     {/* Capacity Chart */}
-                    <Card className="bg-white border-slate-200 shadow-lg rounded-2xl overflow-hidden">
-                        <CardHeader className="bg-slate-50/50 border-b border-slate-100 pb-4">
-                            <CardTitle className="flex justify-between items-center text-lg">
+                    <Card className="bg-stone-800 border-stone-700 shadow-lg rounded-2xl overflow-hidden">
+                        <CardHeader className="bg-stone-900/50 border-b border-stone-700 pb-4">
+                            <CardTitle className="flex justify-between items-center text-lg text-stone-100">
                                 <span>{t('team.capacity') || "Monthly Capacity Status"}</span>
-                                <span className="text-sm font-normal text-slate-500">
+                                <span className="text-sm font-normal text-stone-400">
                                     {stats.users.length} {t('common.users') || "Members"}
                                 </span>
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="pt-6 grid gap-5">
                             {stats.users.length === 0 ? (
-                                <div className="text-center py-8 text-slate-400 italic">No users found for this filter.</div>
+                                <div className="text-center py-8 text-stone-400 italic">No users found for this filter.</div>
                             ) : (
                                 stats.users.map(user => (
                                     <div key={user.userId} className="space-y-1.5">
                                         <div className="flex justify-between items-end text-sm">
-                                            <div className="flex items-center gap-2 font-bold text-slate-700">
-                                                <div className="w-6 h-6 rounded-full bg-slate-200 flex items-center justify-center text-[10px] text-slate-500 overflow-hidden">
+                                            <div className="flex items-center gap-2 font-bold text-stone-200">
+                                                <div className="w-6 h-6 rounded-full bg-stone-600 flex items-center justify-center text-[10px] text-stone-300 overflow-hidden">
                                                     {user.image ? <img src={user.image} alt={user.name} className="w-full h-full object-cover" /> : <User className="w-3 h-3" />}
                                                 </div>
                                                 {user.name}
                                             </div>
-                                            <div className={cn("font-bold flex items-center gap-2", user.isComplete ? "text-green-600" : "text-amber-600")}>
+                                            <div className={cn("font-bold flex items-center gap-2", user.isComplete ? "text-green-400" : "text-amber-400")}>
                                                 {formatDuration(user.totalHours)} / {user.workableHours}h
                                                 {user.isComplete ? <CheckCircle className="w-4 h-4" /> : <AlertCircle className="w-4 h-4 opacity-50" />}
                                             </div>
                                         </div>
-                                        <div className="h-4 w-full bg-slate-100 rounded-full overflow-hidden shadow-inner">
+                                        <div className="h-4 w-full bg-stone-700 rounded-full overflow-hidden shadow-inner">
                                             <div
                                                 className={cn("h-full rounded-full transition-all duration-1000", user.isComplete ? "bg-green-500" : "bg-primary")}
                                                 style={{ width: `${user.percentage}%` }}

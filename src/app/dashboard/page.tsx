@@ -54,11 +54,11 @@ export default function DashboardPage() {
             {/* Header */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
-                    <h1 className="text-4xl font-black tracking-tight text-slate-900 mb-2">
+                    <h1 className="text-4xl font-black tracking-tight text-stone-100 mb-2">
                         {t('dash.title')} <span className="text-primary italic">{t('dash.subtitle')}</span>
                     </h1>
-                    <p className="text-slate-500 font-medium">
-                        {t('dash.welcome')} <span className="text-slate-900 font-bold">{session?.user?.name}</span>.
+                    <p className="text-stone-400 font-medium">
+                        {t('dash.welcome')} <span className="text-stone-100 font-bold">{session?.user?.name}</span>.
                         {isManager ? t('dash.desc.manager') : t('dash.desc.user')}
                     </p>
                 </div>
@@ -68,20 +68,20 @@ export default function DashboardPage() {
             {/* Key Metrics Grid */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {/* Total Hours Card */}
-                <Card className="bg-slate-50 border-slate-200 shadow-xl rounded-3xl overflow-hidden relative">
-                    <div className="absolute top-0 right-0 p-4 opacity-5">
+                <Card className="bg-stone-800 border-stone-700 shadow-xl rounded-3xl overflow-hidden relative">
+                    <div className="absolute top-0 right-0 p-4 opacity-10">
                         <Clock className="w-32 h-32 text-primary" />
                     </div>
                     <CardHeader className="pb-2">
-                        <CardTitle className="text-sm font-black text-slate-500 uppercase tracking-widest">
+                        <CardTitle className="text-sm font-black text-stone-400 uppercase tracking-widest">
                             {t('dash.hours.user')}
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div className="text-4xl font-black text-slate-900 tracking-tight mb-2">
+                        <div className="text-4xl font-black text-stone-100 tracking-tight mb-2">
                             {formatDuration(stats.totalHoursMonth)}
                         </div>
-                        <div className={cn("flex items-center text-sm font-bold gap-1", growth >= 0 ? "text-green-400" : "text-red-500")}>
+                        <div className={cn("flex items-center text-sm font-bold gap-1", growth >= 0 ? "text-green-400" : "text-red-400")}>
                             {growth >= 0 ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
                             {Math.abs(Number(growthPercent))}% {growth >= 0 ? t('dash.growth.up') : t('dash.growth.down')}
                         </div>
@@ -89,20 +89,20 @@ export default function DashboardPage() {
                 </Card>
 
                 {/* Active Projects Card */}
-                <Card className="bg-slate-50 border-slate-200 shadow-xl rounded-3xl overflow-hidden relative">
-                    <div className="absolute top-0 right-0 p-4 opacity-5">
-                        <Briefcase className="w-32 h-32 text-blue-600" />
+                <Card className="bg-stone-800 border-stone-700 shadow-xl rounded-3xl overflow-hidden relative">
+                    <div className="absolute top-0 right-0 p-4 opacity-10">
+                        <Briefcase className="w-32 h-32 text-blue-400" />
                     </div>
                     <CardHeader className="pb-2">
-                        <CardTitle className="text-sm font-black text-slate-500 uppercase tracking-widest">
+                        <CardTitle className="text-sm font-black text-stone-400 uppercase tracking-widest">
                             {t('dash.projects.title')}
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div className="text-5xl font-black text-slate-900 tracking-tight mb-2">
+                        <div className="text-5xl font-black text-stone-100 tracking-tight mb-2">
                             {stats.topProjects.length}
                         </div>
-                        <p className="text-slate-500 font-medium text-sm">
+                        <p className="text-stone-400 font-medium text-sm">
                             {t('dash.projects.desc')}
                         </p>
                     </CardContent>
@@ -152,69 +152,69 @@ export default function DashboardPage() {
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 {/* Top Projects List */}
-                <Card className="bg-slate-50 border-slate-200 shadow-xl rounded-3xl overflow-hidden">
-                    <CardHeader className="bg-slate-100/50 border-b border-slate-100">
-                        <CardTitle className="text-lg font-black text-slate-900 flex items-center gap-2">
+                <Card className="bg-stone-800 border-stone-700 shadow-xl rounded-3xl overflow-hidden">
+                    <CardHeader className="bg-stone-900/50 border-b border-stone-700">
+                        <CardTitle className="text-lg font-black text-stone-100 flex items-center gap-2">
                             <Briefcase className="w-5 h-5 text-primary" />
                             {t('dash.top_projects')}
                         </CardTitle>
-                        <CardDescription>{t('dash.top_projects.desc')}</CardDescription>
+                        <CardDescription className="text-stone-400">{t('dash.top_projects.desc')}</CardDescription>
                     </CardHeader>
                     <CardContent className="p-0">
                         <div className="flex flex-col">
                             {stats.topProjects.map((proj, i) => (
-                                <div key={i} className="flex items-center justify-between p-6 border-b border-slate-50 last:border-none hover:bg-slate-100 transition-colors">
+                                <div key={i} className="flex items-center justify-between p-6 border-b border-stone-700 last:border-none hover:bg-stone-700/50 transition-colors">
                                     <div className="flex flex-col gap-1">
-                                        <span className="font-bold text-slate-900">{proj.name}</span>
-                                        <span className="text-[10px] font-black uppercase text-blue-600 bg-blue-50 px-2 py-0.5 rounded w-fit">
+                                        <span className="font-bold text-stone-100">{proj.name}</span>
+                                        <span className="text-[10px] font-black uppercase text-blue-300 bg-blue-900/50 px-2 py-0.5 rounded w-fit">
                                             {proj.code}
                                         </span>
                                     </div>
                                     <div className="flex items-center gap-4">
                                         <div className="text-right">
-                                            <span className="block font-black text-lg text-slate-900">{formatDuration(proj.hours)}</span>
-                                            <span className="text-xs text-slate-500 font-bold">{t('dash.logged')}</span>
+                                            <span className="block font-black text-lg text-stone-100">{formatDuration(proj.hours)}</span>
+                                            <span className="text-xs text-stone-400 font-bold">{t('dash.logged')}</span>
                                         </div>
                                     </div>
                                 </div>
                             ))}
                             {stats.topProjects.length === 0 && (
-                                <div className="p-10 text-center text-slate-500 font-medium italic">{t('dash.no_activity')}</div>
+                                <div className="p-10 text-center text-stone-400 font-medium italic">{t('dash.no_activity')}</div>
                             )}
                         </div>
                     </CardContent>
                 </Card>
 
                 {/* Recent Activity Log */}
-                <Card className="bg-slate-50 border-slate-200 shadow-xl rounded-3xl overflow-hidden">
-                    <CardHeader className="bg-slate-100/50 border-b border-slate-100">
-                        <CardTitle className="text-lg font-black text-slate-900 flex items-center gap-2">
+                <Card className="bg-stone-800 border-stone-700 shadow-xl rounded-3xl overflow-hidden">
+                    <CardHeader className="bg-stone-900/50 border-b border-stone-700">
+                        <CardTitle className="text-lg font-black text-stone-100 flex items-center gap-2">
                             <Calendar className="w-5 h-5 text-primary" />
                             {t('dash.recent')}
                         </CardTitle>
-                        <CardDescription>{t('dash.recent.desc.user')}</CardDescription>
+                        <CardDescription className="text-stone-400">{t('dash.recent.desc.user')}</CardDescription>
                     </CardHeader>
                     <CardContent className="p-0">
                         <div className="flex flex-col">
                             {stats.recentActivity.map((log) => (
-                                <div key={log.id} className="flex items-start gap-4 p-6 border-b border-slate-50 last:border-none hover:bg-slate-100 transition-colors">
+                                <div key={log.id} className="flex items-start gap-4 p-6 border-b border-stone-700 last:border-none hover:bg-stone-700/50 transition-colors">
                                     <div className="min-w-[4rem] text-center">
-                                        <span className="block text-xs font-black text-slate-500 uppercase tracking-wider">{format(new Date(log.date), "MMM")}</span>
-                                        <span className="block text-xl font-black text-slate-900 leading-none">{format(new Date(log.date), "dd/MM/yyyy")}</span>
+                                        <span className="block text-xs font-black text-stone-400 uppercase tracking-wider">{format(new Date(log.date), "MMM")}</span>
+                                        <span className="block text-xl font-black text-stone-100 leading-none">{format(new Date(log.date), "dd/MM/yyyy")}</span>
                                     </div>
                                     <div className="flex-1">
                                         <div className="flex justify-between items-center mb-1">
-                                            <span className="text-[10px] font-black uppercase text-slate-500 tracking-wider">
+                                            <span className="text-[10px] font-black uppercase text-stone-400 tracking-wider">
                                                 {log.project}
                                             </span>
                                             <span className="font-black text-primary">{formatDuration(log.hours)}</span>
                                         </div>
-                                        <p className="text-sm font-medium text-slate-700 line-clamp-2">{log.description}</p>
+                                        <p className="text-sm font-medium text-stone-300 line-clamp-2">{log.description}</p>
                                     </div>
                                 </div>
                             ))}
                             {stats.recentActivity.length === 0 && (
-                                <div className="p-10 text-center text-slate-500 font-medium italic">{t('dash.no_logs')}</div>
+                                <div className="p-10 text-center text-stone-400 font-medium italic">{t('dash.no_logs')}</div>
                             )}
                         </div>
                     </CardContent>
@@ -225,7 +225,7 @@ export default function DashboardPage() {
             {/* Focus is on hours only now */}
 
             {isManager && (
-                <div className="pt-4 border-t border-slate-200">
+                <div className="pt-4 border-t border-stone-700">
                     <TeamView />
                 </div>
             )}

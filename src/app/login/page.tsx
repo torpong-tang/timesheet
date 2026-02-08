@@ -55,15 +55,15 @@ export default function LoginPage() {
                 <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-secondary/20 blur-3xl rounded-full" />
 
                 <CardHeader className="space-y-4 text-center relative z-10">
-                    <div className="mx-auto w-48 h-48 mb-6 hover:scale-105 transition-transform duration-300">
+                    <div className="mx-auto w-40 h-40 mb-8 hover:scale-105 transition-transform duration-500 hover:rotate-3">
                         <img
-                            src="/logo-3d.png"
+                            src="/app-logo.svg"
                             alt="Timesheet Logo"
-                            className="w-full h-full object-contain drop-shadow-xl"
+                            className="w-full h-full object-contain drop-shadow-2xl"
                         />
                     </div>
-                    <CardTitle className="text-4xl font-black tracking-tighter text-slate-900">
-                        TIME<span className="text-primary italic">SHEET</span>
+                    <CardTitle className="text-5xl font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-br from-slate-900 via-slate-700 to-slate-900 pb-2">
+                        TIME<span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-amber-600 italic">SHEET</span>
                     </CardTitle>
                     <CardDescription className="text-slate-500 font-medium">
                         {t('login.subtitle')}
@@ -79,7 +79,7 @@ export default function LoginPage() {
                                 value={userlogin}
                                 onChange={(e) => setUserlogin(e.target.value)}
                                 required
-                                className="h-12 bg-slate-50/60 border-white/40 focus:bg-slate-50 focus:border-primary transition-all rounded-xl shadow-inner font-medium"
+                                className="h-12 bg-white border-slate-300 text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-primary transition-all rounded-xl shadow-inner font-medium"
                             />
                         </div>
                         <div className="grid gap-2">
@@ -91,7 +91,7 @@ export default function LoginPage() {
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 required
-                                className="h-12 bg-slate-50/60 border-white/40 focus:bg-slate-50 focus:border-primary transition-all rounded-xl shadow-inner font-medium"
+                                className="h-12 bg-white border-slate-300 text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-primary transition-all rounded-xl shadow-inner font-medium"
                             />
                         </div>
                     </CardContent>
