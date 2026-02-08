@@ -257,7 +257,7 @@ export default function ReportsPage() {
                 month,
                 userId: selectedUser === "all" ? undefined : availableOptions.users.find(u => u.id === selectedUser)?.id,
                 projectId: selectedProject === "all" ? undefined : availableOptions.projects.find(p => p.id === selectedProject)?.id
-            })
+            }, viewMode)
 
             const link = document.createElement('a')
             link.href = `data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,${base64}`
