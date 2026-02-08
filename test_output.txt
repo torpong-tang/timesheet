@@ -1,0 +1,18 @@
+
+Running 1 test using 1 worker
+
+[1A[2K[1/1] [chromium] › tests/export-bug.spec.ts:18:9 › Export Report Functionality › should export report filtered by user correctly
+[1A[2K  1) [chromium] › tests/export-bug.spec.ts:18:9 › Export Report Functionality › should export report filtered by user correctly 
+
+    Test was interrupted.
+
+    Error: browserContext.newPage: Test ended.
+
+
+[1A[2K  1 interrupted
+    [chromium] › tests/export-bug.spec.ts:18:9 › Export Report Functionality › should export report filtered by user correctly 
+
+To open last HTML report run:
+[36m[39m
+[36m  npx playwright show-report[39m
+[36m[39m

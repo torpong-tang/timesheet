@@ -19,7 +19,7 @@ export type ReportEntry = {
     description: string
     userId: string
     projectId: string
-    user: { name: string | null, userlogin: string }
+    user: { id: string, name: string | null, userlogin: string }
     project: { name: string, code: string }
 }
 
@@ -83,7 +83,7 @@ export async function getReportData(filter: ReportFilter) {
     const data = await prisma.timesheetEntry.findMany({
         where: whereClause,
         include: {
-            user: { select: { name: true, userlogin: true } },
+            user: { select: { id: true, name: true, userlogin: true } },
             project: { select: { name: true, code: true } }
         },
         orderBy: { date: 'asc' }
