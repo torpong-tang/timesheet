@@ -74,7 +74,7 @@ export default function ReportsPage() {
         const projects = new Map<string, { id: string, code: string }>()
 
         rawData.forEach(item => {
-            users.set(item.user.userlogin, { id: item.user.userlogin, name: item.user.name || item.user.userlogin })
+            users.set(item.user.id, { id: item.user.id, name: item.user.name || item.user.userlogin })
             projects.set(item.projectId, { id: item.projectId, code: item.project.code })
         })
 
@@ -108,7 +108,7 @@ export default function ReportsPage() {
 
         // Filter by Dropdowns
         if (selectedUser !== "all") {
-            data = data.filter(item => item.user.userlogin === selectedUser || (item as any).userId === selectedUser)
+            data = data.filter(item => item.userId === selectedUser)
         }
         if (selectedProject !== "all") {
             data = data.filter(item => item.project.code === selectedProject || (item as any).projectId === selectedProject)
@@ -135,8 +135,8 @@ export default function ReportsPage() {
         const map = new Map<string, { id: string, user: any, project: any, hours: number }>()
 
         processedData.forEach(entry => {
-            // Group Key: UserLogin + ProjectCode
-            const key = `${entry.user.userlogin}_${entry.project.code}`
+            // Group Key: UserId + ProjectCode (using UUID for uniqueness)
+            const key = `${entry.userId}_${entry.project.code}`
 
             if (!map.has(key)) {
                 map.set(key, {
@@ -218,7 +218,7 @@ export default function ReportsPage() {
             pData = rawData.filter(d => d.user.userlogin === selectedUser || (d as any).userId === selectedUser)
         }
 
-        const users = Array.from(new Set(uData.map(d => JSON.stringify({ id: d.user.userlogin, name: d.user.name }))))
+        const users = Array.from(new Set(uData.map(d => JSON.stringify({ id: d.user.id, name: d.user.name, userlogin: d.user.userlogin }))))
             .map(s => JSON.parse(s))
             .sort((a: any, b: any) => (a.name || "").localeCompare(b.name || ""))
 
@@ -316,7 +316,7 @@ export default function ReportsPage() {
                                 onChange={(v) => { setSelectedUser(v); setPage(1); }}
                                 options={[
                                     { label: `All Users (${availableOptions.users.length})`, value: "all" },
-                                    ...availableOptions.users.map(u => ({ label: `${u.name} (@${u.id})`, value: u.id }))
+                                    ...availableOptions.users.map((u: any) => ({ label: `${u.name} (@${u.userlogin})`, value: u.id }))
                                 ]}
                                 placeholder="Select User"
                                 searchPlaceholder="Search user..."
