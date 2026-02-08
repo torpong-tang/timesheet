@@ -47,10 +47,11 @@ test.describe('Calendar Modal Interaction', () => {
     test('Should be able to click and select a project in Daily Log modal', async ({ page }) => {
         // 1. Login
         await page.goto('/login');
+        await page.waitForLoadState('networkidle');
         await page.fill('#userlogin', devUser.userlogin);
         await page.fill('#password', 'password123');
         await page.click('button[type="submit"]');
-        await page.waitForURL('/dashboard');
+        await expect(page).toHaveURL(/.*dashboard/, { timeout: 15000 });
 
         // 2. Go to Calendar
         await page.goto('/dashboard/calendar');

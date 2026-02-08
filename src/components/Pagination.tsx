@@ -96,13 +96,13 @@ export function Pagination({ currentPage, totalPages, onPageChange }: Pagination
                             key={i}
                             variant={p === currentPage ? "default" : "outline"}
                             size="icon"
-                            className={`h-8 w-8 rounded-lg text-xs font-bold ${p === currentPage ? "bg-primary text-white hover:bg-primary/90" : "text-slate-600"}`}
+                            className={`h-8 w-8 rounded-lg text-xs font-bold ${p === currentPage ? "bg-primary text-white hover:bg-primary/90" : "text-stone-300"}`}
                             onClick={() => onPageChange(p)}
                         >
                             {p}
                         </Button>
                     ) : (
-                        <div key={i} className="flex items-center justify-center w-8 h-8 text-slate-400">
+                        <div key={i} className="flex items-center justify-center w-8 h-8 text-stone-500">
                             <MoreHorizontal className="h-4 w-4" />
                         </div>
                     )

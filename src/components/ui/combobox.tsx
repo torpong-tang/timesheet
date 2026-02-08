@@ -64,30 +64,30 @@ export function Combobox({
                     variant="outline"
                     role="combobox"
                     aria-expanded={open}
-                    className={cn("w-full justify-between bg-slate-100 border-slate-200 hover:bg-slate-200/50 hover:text-slate-900", className)}
+                    className={cn("w-full justify-between bg-stone-700 border-stone-600 text-stone-100 hover:bg-stone-600 hover:text-stone-100", className)}
                     disabled={disabled}
                 >
                     {value ? selectedLabel : placeholder}
                     <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-full p-0 min-w-[200px]" align="start">
+            <PopoverContent className="w-full p-0 min-w-[200px] bg-stone-800 border-stone-700" align="start">
                 <div className="flex flex-col">
                     {/* Search Input */}
-                    <div className="flex items-center border-b px-3">
-                        <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
+                    <div className="flex items-center border-b border-stone-700 px-3">
+                        <Search className="mr-2 h-4 w-4 shrink-0 text-stone-400" />
                         <Input
                             placeholder={searchPlaceholder}
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="h-11 border-0 bg-transparent py-3 text-sm outline-none ring-0 focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground"
+                            className="h-11 border-0 bg-transparent py-3 text-sm outline-none ring-0 focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0 text-stone-100 placeholder:text-stone-500"
                         />
                     </div>
 
                     {/* Options List */}
                     <div className="max-h-[300px] overflow-y-auto overflow-x-hidden p-1">
                         {filteredOptions.length === 0 ? (
-                            <div className="py-6 text-center text-sm text-muted-foreground">
+                            <div className="py-6 text-center text-sm text-stone-400">
                                 {emptyText}
                             </div>
                         ) : (
@@ -97,8 +97,8 @@ export function Combobox({
                                     role="option"
                                     aria-selected={value === option.value}
                                     className={cn(
-                                        "relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground",
-                                        value === option.value && "bg-accent text-accent-foreground"
+                                        "relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none text-stone-100 hover:bg-stone-700 hover:text-stone-100",
+                                        value === option.value && "bg-stone-700 text-primary"
                                     )}
                                     onMouseDown={(e) => {
                                         e.preventDefault()

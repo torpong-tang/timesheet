@@ -31,7 +31,7 @@ export default function AdminLayout({
                         <div className="w-8 h-8 rounded-lg bg-primary shadow-lg shadow-primary/30 flex items-center justify-center">
                             <Calendar className="text-white h-5 w-5" />
                         </div>
-                        <h2 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-orange-600">
+                        <h2 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-orange-600 select-none caret-transparent">
                             Admin Portal
                         </h2>
                     </div>

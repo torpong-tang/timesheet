@@ -1,17 +1,14 @@
 import { test, expect } from '@playwright/test';
 import { PrismaClient } from '@prisma/client';
+import { loginAsAdmin } from './helpers/auth';
 
 const prisma = new PrismaClient();
 
 test.describe('Admin Users Management', () => {
 
     test.beforeEach(async ({ page }) => {
-        // Login as Admin
-        await page.goto('/login');
-        await page.fill('#userlogin', 'Torpong.T');
-        await page.fill('#password', 'password123');
-        await page.click('button[type="submit"]');
-        await expect(page).toHaveURL(/.*dashboard/);
+        // Login as Admin using helper with proper waiting
+        await loginAsAdmin(page);
     });
 
     test('should display User Login and Status columns', async ({ page }) => {
