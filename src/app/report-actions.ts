@@ -92,36 +92,75 @@ export async function getReportData(filter: ReportFilter) {
     return data
 }
 
-export async function generateExcelReport(filter: ReportFilter) {
+export async function generateExcelReport(filter: ReportFilter, mode: 'daily' | 'summary' = 'daily') {
     const data = await getReportData(filter)
 
     const workbook = new ExcelJS.Workbook()
     const worksheet = workbook.addWorksheet('Timesheet Report')
 
-    worksheet.columns = [
-        { header: 'Date', key: 'date', width: 15 },
-        { header: 'Employee', key: 'user', width: 25 },
-        { header: 'Project Code', key: 'projectCode', width: 15 },
-        { header: 'Project Name', key: 'projectName', width: 30 },
-        { header: 'Hours', key: 'hours', width: 10 },
-        { header: 'Description', key: 'description', width: 40 },
-    ]
+    if (mode === 'daily') {
+        worksheet.columns = [
+            { header: 'Date', key: 'date', width: 15 },
+            { header: 'Employee', key: 'user', width: 25 },
+            { header: 'Project Code', key: 'projectCode', width: 15 },
+            { header: 'Project Name', key: 'projectName', width: 30 },
+            { header: 'Hours', key: 'hours', width: 10 },
+            { header: 'Description', key: 'description', width: 40 },
+        ]
 
-    data.forEach(entry => {
-        worksheet.addRow({
-            date: format(entry.date, 'yyyy-MM-dd'),
-            user: entry.user.name,
-            projectCode: entry.project.code,
-            projectName: entry.project.name,
-            hours: entry.hours,
-            description: entry.description
+        data.forEach(entry => {
+            worksheet.addRow({
+                date: format(entry.date, 'yyyy-MM-dd'),
+                user: entry.user.name || entry.user.userlogin,
+                projectCode: entry.project.code,
+                projectName: entry.project.name,
+                hours: entry.hours,
+                description: entry.description
+            })
         })
-    })
 
-    // Total Row
-    const totalHours = data.reduce((sum, item) => sum + item.hours, 0)
-    worksheet.addRow(['', '', '', 'Total', totalHours, ''])
-    worksheet.getRow(worksheet.lastRow!.number).font = { bold: true }
+        // Total Row
+        const totalHours = data.reduce((sum, item) => sum + item.hours, 0)
+        worksheet.addRow(['', '', '', 'Total', totalHours, ''])
+        worksheet.getRow(worksheet.lastRow!.number).font = { bold: true }
+
+    } else {
+        // SUMMARY MODE
+        worksheet.columns = [
+            { header: 'Employee', key: 'user', width: 25 },
+            { header: 'Project Code', key: 'projectCode', width: 15 },
+            { header: 'Project Name', key: 'projectName', width: 30 },
+            { header: 'Total Hours', key: 'hours', width: 15 },
+        ]
+
+        // Group Data
+        const grouped = new Map<string, { user: string, projectCode: string, projectName: string, hours: number }>()
+
+        data.forEach(entry => {
+            const key = `${entry.userId}_${entry.projectId}`
+            if (!grouped.has(key)) {
+                grouped.set(key, {
+                    user: entry.user.name || entry.user.userlogin,
+                    projectCode: entry.project.code,
+                    projectName: entry.project.name,
+                    hours: 0
+                })
+            }
+            grouped.get(key)!.hours += entry.hours
+        })
+
+        // Add Rows
+        Array.from(grouped.values())
+            .sort((a, b) => a.user.localeCompare(b.user))
+            .forEach(item => {
+                worksheet.addRow(item)
+            })
+
+        // Grand Total
+        const totalHours = Array.from(grouped.values()).reduce((sum, item) => sum + item.hours, 0)
+        worksheet.addRow(['', '', 'Grand Total', totalHours])
+        worksheet.getRow(worksheet.lastRow!.number).font = { bold: true }
+    }
 
     const buffer = await workbook.xlsx.writeBuffer()
     return Buffer.from(buffer).toString('base64')
