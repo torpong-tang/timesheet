@@ -32,16 +32,19 @@ test.describe('Export Report Functionality', () => {
         // Open User Filter Dropdown
         await page.locator('label:has-text("User") + button').click();
 
-        // Select the second option (first real user)
-        // Wait for popover content
-        const option = page.locator('[role="listbox"] [role="option"]').nth(1);
-        await option.waitFor();
+        // Wait for popover to be fully open (search input visible)
+        await page.getByPlaceholder('Search user...').waitFor();
 
-        const userTextFull = await option.textContent();
+        // Select the first real user option (containing '@')
+        // This is more robust than .nth(1)
+        const userOption = page.getByRole('option').filter({ hasText: /@/ }).first();
+        await userOption.waitFor();
+
+        const userTextFull = await userOption.textContent();
         const userName = userTextFull?.split(' (@')[0].trim();
         console.log(`Selecting User: ${userName}`);
 
-        await option.click();
+        await userOption.click();
 
         // Click Export
         const downloadPromise = page.waitForEvent('download');
