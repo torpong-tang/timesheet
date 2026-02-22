@@ -1,7 +1,14 @@
-import { PrismaClient, Role } from '@prisma/client'
+import { PrismaClient } from '@prisma/client'
 import bcrypt from 'bcryptjs'
 
 const prisma = new PrismaClient()
+
+const Role = {
+    ADMIN: 'ADMIN',
+    GM: 'GM',
+    PM: 'PM',
+    DEV: 'DEV',
+}
 
 async function main() {
     console.log('Start seeding...')
@@ -22,7 +29,7 @@ async function main() {
     console.log('Seeded Admin: Torpong.T')
 
     // 2. Generate Users (GM: 1, PM: 5, DEV: 10)
-    const seedUsers = async (role: Role, count: number) => {
+    const seedUsers = async (role: string, count: number) => {
         const userIds = []
         for (let i = 1; i <= count; i++) {
             // Use time to ensure uniqueness across runs

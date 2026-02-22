@@ -57,7 +57,7 @@ export default function LoginPage() {
                 <CardHeader className="space-y-4 text-center relative z-10">
                     <div className="mx-auto w-40 h-40 mb-8 hover:scale-105 transition-transform duration-500 hover:rotate-3">
                         <img
-                            src="/app-logo.svg"
+                            src="/timesheet/app-logo.svg"
                             alt="Timesheet Logo"
                             className="w-full h-full object-contain drop-shadow-2xl"
                         />

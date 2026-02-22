@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { revalidatePath } from "next/cache"
-import { Role } from "@prisma/client"
+// import { Role } from "@prisma/client"
 import bcrypt from "bcryptjs"
 import { logAudit } from "@/lib/audit"
 
@@ -20,7 +20,7 @@ export async function getUsers() {
     })
 }
 
-export async function upsertUser(data: { id?: string, userlogin: string, name: string, email: string, role: Role, password?: string, status: string }) {
+export async function upsertUser(data: { id?: string, userlogin: string, name: string, email: string, role: string, password?: string, status: string }) {
     const session = await getServerSession(authOptions)
     if (session?.user.role !== 'ADMIN') throw new Error("Unauthorized")
 
