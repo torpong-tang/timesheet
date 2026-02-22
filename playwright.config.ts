@@ -12,7 +12,7 @@ export default defineConfig({
         timeout: 10000, // 10 seconds for expect assertions
     },
     use: {
-        baseURL: process.env.TEST_BASE_URL || 'http://localhost:3000',
+        baseURL: process.env.TEST_BASE_URL || 'http://localhost/timesheet',
         trace: 'on-first-retry',
         video: 'on', // Enable video recording for all tests
         actionTimeout: 15000, // 15 seconds for actions
@@ -51,7 +51,7 @@ export default defineConfig({
     /* Run your local dev server before starting the tests */
     webServer: {
         command: 'npm run dev',
-        url: 'http://localhost:3000',
+        url: 'http://localhost:3001/timesheet',
         reuseExistingServer: !process.env.CI,
     },
 });

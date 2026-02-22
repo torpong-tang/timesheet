@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import bcrypt from "bcryptjs"
-import { writeFile, unlink } from "fs/promises"
+import { writeFile, unlink, mkdir } from "fs/promises"
 import path from "path"
 import { logAudit } from "@/lib/audit"
 
@@ -18,13 +18,15 @@ export async function updateProfileImage(formData: FormData) {
     const bytes = await file.arrayBuffer()
     const buffer = Buffer.from(bytes)
 
-    // Ensure directory exists (assuming public/imgs exists based on task)
     // Generate unique filename
     const filename = `profile_${session.user.id}_${Date.now()}.jpg`
-    const publicPath = `/imgs/${filename}`
-    const diskPath = path.join(process.cwd(), "public", "imgs", filename)
+    const publicPath = `/timesheet/img/${filename}`
+    const imgDir = path.join(process.cwd(), "public", "img")
+    const diskPath = path.join(imgDir, filename)
 
     try {
+        // Ensure directory exists
+        await mkdir(imgDir, { recursive: true })
         await writeFile(diskPath, buffer)
 
         // Update user record

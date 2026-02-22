@@ -6,17 +6,12 @@ generator client {
 }
 
 datasource db {
-  provider = "mysql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
 // User Roles
-enum Role {
-  ADMIN
-  GM
-  PM
-  DEV
-}
+// Enum Role removed for SQLite compatibility
 
 model User {
   id          String    @id @default(uuid())
@@ -24,7 +19,7 @@ model User {
   email       String    @unique
   password    String
   name        String?
-  role        Role      @default(DEV)
+  role        String    @default("DEV")
   image       String?   // Stored as relative path e.g. "/imgs/profile_123.jpg"
   
   // Relations

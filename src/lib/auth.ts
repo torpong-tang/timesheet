@@ -33,27 +33,28 @@ export const authOptions: NextAuthOptions = {
                     return null
                 }
 
-                // We cannot use logAudit here directly effectively because authorize runs on server 
-                // but simpler to do it in the callback or here if we import it.
-                // We need to be careful about async context.
-
-                // Let's import logAudit dynamically inside to avoid circular deps if any (unlikely here)
                 const { logAudit } = await import("@/lib/audit")
-                await logAudit("LOGIN_SUCCESS", user.id, `User ${user.userlogin} logged in`)
+                await logAudit(
+                    "LOGIN_SUCCESS",
+                    user.id,
+                    `User ${user.userlogin} logged in`
+                )
 
                 return {
                     id: user.id,
                     name: user.name,
                     email: user.email,
-                    role: user.role, // Pass role to session
+                    role: user.role,
                     image: user.image,
                 }
             }
         })
     ],
+
     session: {
         strategy: "jwt",
     },
+
     callbacks: {
         async jwt({ token, user, trigger, session }) {
             if (user) {
@@ -66,6 +67,7 @@ export const authOptions: NextAuthOptions = {
             }
             return token
         },
+
         async session({ session, token }) {
             if (token && session.user) {
                 session.user.role = token.role
@@ -73,10 +75,32 @@ export const authOptions: NextAuthOptions = {
                 session.user.image = token.picture
             }
             return session
+        },
+
+        // 🔥 เพิ่มส่วนนี้เข้าไป
+        async redirect({ url, baseUrl }) {
+            // ถ้ากลับ root → พาไป basePath
+            if (url === baseUrl || url === `${baseUrl}/`) {
+                return `${baseUrl}/timesheet`
+            }
+
+            // ถ้าเป็น path ภายใน เช่น /dashboard
+            if (url.startsWith("/")) {
+                return `${baseUrl}${url}`
+            }
+
+            // ถ้าเป็นโดเมนเดียวกัน
+            if (new URL(url).origin === baseUrl) {
+                return url
+            }
+
+            return `${baseUrl}/timesheet`
         }
     },
+
     pages: {
         signIn: "/login",
     },
+
     secret: process.env.NEXTAUTH_SECRET,
 }

@@ -31,19 +31,19 @@ export function MainNav({
             href: "/dashboard",
             label: t('nav.dashboard'),
             icon: LayoutDashboard,
-            active: pathname === "/dashboard",
+            active: pathname === "/timesheet/dashboard" || pathname === "/timesheet/dashboard/",
         },
         {
             href: "/dashboard/calendar",
             label: t('nav.calendar'),
             icon: CalendarIcon,
-            active: pathname === "/dashboard/calendar",
+            active: pathname.startsWith("/timesheet/dashboard/calendar"),
         },
         {
             href: "/dashboard/reports",
             label: t('nav.reports'),
             icon: LayoutDashboard,
-            active: pathname === "/dashboard/reports",
+            active: pathname.startsWith("/timesheet/dashboard/reports"),
         },
     ]
 
@@ -70,7 +70,7 @@ export function MainNav({
                     href="/admin"
                     className={cn(
                         "text-sm font-medium transition-colors hover:text-primary flex items-center gap-2",
-                        pathname.startsWith("/admin") ? "text-primary font-bold" : "text-muted-foreground"
+                        pathname.startsWith("/timesheet/admin") ? "text-primary font-bold" : "text-muted-foreground"
                     )}
                 >
                     <Settings className="h-4 w-4" />
@@ -118,7 +118,7 @@ export function UserNav() {
                 </DropdownMenuItem>
 
                 <DropdownMenuSeparator />
-                <DropdownMenuItem className="text-red-500 focus:text-red-600 cursor-pointer" onClick={() => signOut({ callbackUrl: "/login" })}>
+                <DropdownMenuItem className="text-red-500 focus:text-red-600 cursor-pointer" onClick={() => signOut({ callbackUrl: "/timesheet/login" })}>
                     <LogOut className="mr-2 h-4 w-4" />
                     {t('auth.logout')}
                 </DropdownMenuItem>

@@ -54,7 +54,7 @@ export default function Error({ error, reset }: ErrorPageProps) {
                             Try Again
                         </Button>
                         <Button
-                            onClick={() => window.location.href = '/dashboard'}
+                            onClick={() => window.location.href = '/timesheet/dashboard'}
                             className="flex-1"
                             variant="outline"
                         >
