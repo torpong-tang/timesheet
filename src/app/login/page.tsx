@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { toast } from "sonner"
-import { Loader2, X } from "lucide-react"
+import { Loader2 } from "lucide-react"
 
 import { useLanguage } from "@/components/providers/language-provider"
 
@@ -52,9 +52,10 @@ export default function LoginPage() {
             <a
                 href="https://2startup.cloud/"
                 aria-label="Close and return to 2Startup Cloud"
-                className="fixed right-4 top-4 z-50 inline-flex h-11 w-11 items-center justify-center rounded-full border border-stone-700/70 bg-stone-950/75 text-stone-200 shadow-xl shadow-black/30 backdrop-blur-md transition hover:border-amber-500/70 hover:bg-stone-900 hover:text-amber-300 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                title="Back to 2Startup Cloud"
+                className="fixed right-5 top-5 z-[100] inline-flex h-12 w-12 items-center justify-center rounded-full border-2 border-white/80 bg-amber-500 text-3xl font-black leading-none text-stone-950 shadow-2xl shadow-black/40 transition hover:scale-105 hover:bg-amber-400 focus:outline-none focus:ring-4 focus:ring-amber-300"
             >
-                <X className="h-5 w-5" aria-hidden="true" />
+                <span aria-hidden="true">×</span>
             </a>
             <Card className="w-full max-w-md bg-slate-50 border border-slate-200 shadow-2xl relative overflow-hidden rounded-3xl">
                 {/* Decorative blob */}
