@@ -1,15 +1,11 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Prompt } from "next/font/google";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+const prompt = Prompt({
+  variable: "--font-prompt",
+  subsets: ["latin", "thai"],
+  weight: ["300", "400", "500", "600", "700", "800", "900"],
 });
 
 export const metadata: Metadata = {
@@ -28,11 +24,16 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen`}
+        className={`${prompt.variable} antialiased min-h-screen`}
         suppressHydrationWarning
       >
         <Providers>
-          {children}
+          <div className="min-h-screen flex flex-col">
+            <main className="flex-1">{children}</main>
+            <footer className="border-t border-stone-800/80 px-4 py-5 text-center text-xs font-medium text-stone-500">
+              © 2026 TPT Team • Version 1.0
+            </footer>
+          </div>
           <Toaster />
         </Providers>
       </body>
