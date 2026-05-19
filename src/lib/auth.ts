@@ -42,6 +42,7 @@ export const authOptions: NextAuthOptions = {
 
                 return {
                     id: user.id,
+                    userlogin: user.userlogin,
                     name: user.name,
                     email: user.email,
                     role: user.role,
@@ -60,6 +61,7 @@ export const authOptions: NextAuthOptions = {
             if (user) {
                 token.role = user.role
                 token.id = user.id
+                token.userlogin = user.userlogin
                 token.picture = user.image
             }
             if (trigger === "update" && session?.image) {
@@ -70,9 +72,10 @@ export const authOptions: NextAuthOptions = {
 
         async session({ session, token }) {
             if (token && session.user) {
-                session.user.role = token.role
+                session.user.role = token.role as string
                 session.user.id = token.id as string
-                session.user.image = token.picture
+                session.user.userlogin = token.userlogin as string
+                session.user.image = token.picture as string
             }
             return session
         },
