@@ -35,6 +35,12 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env*
 
+# local SQLite artifacts (production database is stored outside the checkout)
+/prisma/*.db
+/prisma/*.db-journal
+/prisma/*.db-wal
+/prisma/*.db-shm
+
 # vercel
 .vercel
 
