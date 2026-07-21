@@ -85,6 +85,7 @@ NODE_ENV=test npm test
 npm run build
 TIMESHEET_DB_PATH=/var/lib/2startup/timesheet/timesheet.db npm run db:backup
 npx prisma migrate deploy
+npm prune --omit=dev
 # This migration forces accounts created before the strong-password policy to
 # change their password once. Do not bypass the profile password-change screen.
 pm2 restart ecosystem.config.cjs --only timesheet --update-env
@@ -104,7 +105,18 @@ nginx -t
 ss -ltnp | grep 3001
 ```
 
-The health response must report `database: ok`, `profileStorage: ok`, and a non-zero `diskFreeBytes` value. Configure `pm2-logrotate` and verify its retention after the first restart.
+The health response must report `database: ok`, `profileStorage: ok`, and a non-zero `diskFreeBytes` value. Configure log retention without restarting application processes:
+
+```bash
+pm2 install pm2-logrotate
+pm2 set pm2-logrotate:max_size 10M
+pm2 set pm2-logrotate:retain 14
+pm2 set pm2-logrotate:compress true
+pm2 set pm2-logrotate:dateFormat YYYY-MM-DD_HH-mm-ss
+pm2 save
+```
+
+Verify the `pm2-logrotate` module is online after configuration.
 
 Verify that the other PM2 applications and their health endpoints remain healthy. The Timesheet process must listen only on `127.0.0.1:3001`.
 
@@ -131,7 +143,7 @@ Copy encrypted backups off-server and monitor backup age and disk usage.
 
 1. Stop only the Timesheet process: `pm2 stop timesheet`.
 2. Switch the checkout to the recorded previous release SHA.
-3. Run `npm ci --include=dev`, `npx prisma generate` and `npm run build`.
+3. Run `npm ci --include=dev`, `npx prisma generate`, `npm run build`, then `npm prune --omit=dev`.
 4. Restore the database only when a migration is not backward compatible and the maintenance window has been approved.
 5. Start only Timesheet and repeat all health checks.
 
