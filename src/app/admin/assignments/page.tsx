@@ -1,8 +1,9 @@
 "use client"
 
-import { useState, useEffect, useMemo } from "react"
+import { useState, useEffect } from "react"
 import { getProjectAssignments, assignUserToProject, removeUserFromProject, getUsers, getProjects } from "@/app/admin-actions"
-import { ProjectAssignment, User, Project } from "@prisma/client"
+import type { SafeProjectAssignment, SafeUser } from "@/app/admin-actions"
+import { Project } from "@prisma/client"
 import { Pagination } from "@/components/Pagination"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
@@ -30,48 +31,50 @@ import {
 } from "@/components/ui/select"
 import { Combobox } from "@/components/ui/combobox"
 import { useLanguage } from "@/components/providers/language-provider"
+import { HighlightText } from "@/components/data-table/highlight-text"
+import { SortIndicator } from "@/components/data-table/sort-indicator"
+import { useClientTable } from "@/hooks/use-client-table"
+import { ActionConfirmDialog } from "@/components/ui/action-confirm-dialog"
+import { IconTooltip } from "@/components/ui/icon-tooltip"
 import { Input } from "@/components/ui/input"
 import { toast } from "sonner"
-import { Loader2, Plus, Trash2, Search, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react"
+import { Loader2, Plus, Trash2, Search, UserPlus, X } from "lucide-react"
 
-type AssignmentWithRelations = ProjectAssignment & {
-    user: User,
-    project: Project
-}
+type AssignmentWithRelations = SafeProjectAssignment
 
-// Helper to highlight text
-const HighlightText = ({ text, highlight }: { text: string, highlight: string }) => {
-    if (!highlight.trim()) return <>{text}</>
-    const parts = text.split(new RegExp(`(${highlight})`, 'gi'))
-    return (
-        <span>
-            {parts.map((part, i) =>
-                part.toLowerCase() === highlight.toLowerCase() ? (
-                    <span key={i} className="bg-yellow-200 text-slate-900 font-bold px-0.5 rounded-sm">{part}</span>
-                ) : (
-                    part
-                )
-            )}
-        </span>
+type AssignmentSortKey = "user" | "project" | "role"
+
+type PendingAction =
+    | { type: "save" }
+    | { type: "delete"; id: string; label: string }
+
+const matchesAssignmentSearch = (assignment: AssignmentWithRelations, query: string) =>
+    Boolean(
+        assignment.user.name?.toLocaleLowerCase().includes(query) ||
+        assignment.user.userlogin.toLocaleLowerCase().includes(query) ||
+        assignment.project.name.toLocaleLowerCase().includes(query) ||
+        assignment.project.code.toLocaleLowerCase().includes(query) ||
+        assignment.user.role.toLocaleLowerCase().includes(query)
     )
+
+const getAssignmentSortValue = (
+    assignment: AssignmentWithRelations,
+    key: AssignmentSortKey
+) => {
+    if (key === "user") return assignment.user.name || assignment.user.userlogin
+    if (key === "project") return assignment.project.name
+    return assignment.user.role
 }
-
-
 
 export default function AssignmentsPage() {
     const { t, language } = useLanguage()
     const [assignments, setAssignments] = useState<AssignmentWithRelations[]>([])
-    const [users, setUsers] = useState<User[]>([])
+    const [users, setUsers] = useState<SafeUser[]>([])
     const [projects, setProjects] = useState<Project[]>([])
     const [loading, setLoading] = useState(true)
     const [isDialogOpen, setIsDialogOpen] = useState(false)
     const [saving, setSaving] = useState(false)
-
-    // Data Grid State
-    const [searchQuery, setSearchQuery] = useState("")
-    const [sortConfig, setSortConfig] = useState<{ key: string, direction: 'asc' | 'desc' } | null>(null)
-    const [page, setPage] = useState(1)
-    const [pageSize, setPageSize] = useState(10)
+    const [pendingAction, setPendingAction] = useState<PendingAction | null>(null)
 
     // Form State
     const [selectedUser, setSelectedUser] = useState("")
@@ -98,77 +101,23 @@ export default function AssignmentsPage() {
         loadData()
     }, [])
 
-    // --- Data Processing ---
-    const processedAssignments = useMemo(() => {
-        let data = [...assignments]
-
-        // 1. Search
-        if (searchQuery.trim()) {
-            const lowerQ = searchQuery.toLowerCase()
-            data = data.filter(a =>
-                a.user.name?.toLowerCase().includes(lowerQ) ||
-                a.user.userlogin.toLowerCase().includes(lowerQ) ||
-                a.project.name.toLowerCase().includes(lowerQ) ||
-                a.project.code.toLowerCase().includes(lowerQ) ||
-                a.user.role.toLowerCase().includes(lowerQ)
-            )
-        }
-
-        // 2. Sort
-        if (sortConfig) {
-            data.sort((a, b) => {
-                let aVal = ""
-                let bVal = ""
-
-                switch (sortConfig.key) {
-                    case 'user':
-                        aVal = a.user.name || ""
-                        bVal = b.user.name || ""
-                        break;
-                    case 'project':
-                        aVal = a.project.name || ""
-                        bVal = b.project.name || ""
-                        break;
-                    case 'role':
-                        aVal = a.user.role || ""
-                        bVal = b.user.role || ""
-                        break;
-                    default:
-                        // @ts-ignore
-                        aVal = (a[sortConfig.key] || "").toString()
-                        // @ts-ignore
-                        bVal = (b[sortConfig.key] || "").toString()
-                }
-
-                aVal = aVal.toLowerCase()
-                bVal = bVal.toLowerCase()
-
-                if (aVal < bVal) return sortConfig.direction === 'asc' ? -1 : 1
-                if (aVal > bVal) return sortConfig.direction === 'asc' ? 1 : -1
-                return 0
-            })
-        }
-
-        return data
-    }, [assignments, searchQuery, sortConfig])
-
-    // Pagination
-    const totalPages = Math.ceil(processedAssignments.length / pageSize)
-    const paginatedAssignments = processedAssignments.slice((page - 1) * pageSize, page * pageSize)
-
-    const handleSort = (key: string) => {
-        setSortConfig(current => ({
-            key,
-            direction: current?.key === key && current.direction === 'asc' ? 'desc' : 'asc'
-        }))
-    }
-
-    const SortIcon = ({ column }: { column: string }) => {
-        if (sortConfig?.key !== column) return <ArrowUpDown className="ml-2 h-3 w-3 inline text-slate-600" />
-        return sortConfig.direction === 'asc' ?
-            <ArrowUp className="ml-2 h-3 w-3 inline text-primary" /> :
-            <ArrowDown className="ml-2 h-3 w-3 inline text-primary" />
-    }
+    const {
+        page,
+        pageSize,
+        paginatedItems: paginatedAssignments,
+        processedItems: processedAssignments,
+        searchQuery,
+        setPage,
+        setPageSize,
+        setSearchQuery,
+        sortConfig,
+        toggleSort: handleSort,
+        totalPages,
+    } = useClientTable<AssignmentWithRelations, AssignmentSortKey>({
+        items: assignments,
+        matchesSearch: matchesAssignmentSearch,
+        getSortValue: getAssignmentSortValue,
+    })
 
 
     // --- Actions ---
@@ -190,7 +139,7 @@ export default function AssignmentsPage() {
             if (result.success) {
                 toast.success("User assigned to project successfully")
                 setIsDialogOpen(false)
-                loadData()
+                await loadData()
             }
         } catch (err: any) {
             toast.error(err.message || "Operation failed")
@@ -200,14 +149,35 @@ export default function AssignmentsPage() {
     }
 
     const handleDelete = async (id: string) => {
-        if (!confirm("Are you sure? This will remove the user from the project.")) return
+        setSaving(true)
         try {
             await removeUserFromProject(id)
             toast.success("Assignment removed")
-            loadData()
+            await loadData()
         } catch (err) {
             toast.error("Failed to remove assignment")
+        } finally {
+            setSaving(false)
+            setPendingAction(null)
         }
+    }
+
+    const requestSave = () => {
+        if (!selectedUser || !selectedProject) {
+            toast.error("User and Project are required")
+            return
+        }
+        setPendingAction({ type: "save" })
+    }
+
+    const handleConfirmedAction = async () => {
+        if (!pendingAction) return
+        if (pendingAction.type === "save") {
+            await handleSave()
+            setPendingAction(null)
+            return
+        }
+        await handleDelete(pendingAction.id)
     }
 
     return (
@@ -250,13 +220,13 @@ export default function AssignmentsPage() {
                         <TableHeader className="bg-slate-100/50">
                             <TableRow className="hover:bg-transparent border-slate-200">
                                 <TableHead className="font-bold text-slate-900 cursor-pointer hover:text-primary transition-colors" onClick={() => handleSort('user')}>
-                                    {t('assign.table.member')} <SortIcon column="user" />
+                                    {t('assign.table.member')} <SortIndicator column="user" sortConfig={sortConfig} />
                                 </TableHead>
                                 <TableHead className="font-bold text-slate-900 cursor-pointer hover:text-primary transition-colors" onClick={() => handleSort('project')}>
-                                    {t('assign.table.project')} <SortIcon column="project" />
+                                    {t('assign.table.project')} <SortIndicator column="project" sortConfig={sortConfig} />
                                 </TableHead>
                                 <TableHead className="font-bold text-slate-900 cursor-pointer hover:text-primary transition-colors" onClick={() => handleSort('role')}>
-                                    {t('assign.table.role')} <SortIcon column="role" />
+                                    {t('assign.table.role')} <SortIndicator column="role" sortConfig={sortConfig} />
                                 </TableHead>
                                 <TableHead className="text-right font-bold text-slate-900 px-6">{t('common.actions')}</TableHead>
                             </TableRow>
@@ -306,9 +276,11 @@ export default function AssignmentsPage() {
                                     </TableCell>
                                     <TableCell className="text-right px-6">
                                         <div className="flex justify-end gap-2">
-                                            <Button variant="ghost" size="icon" className="h-9 w-9 text-red-500 hover:text-red-600 hover:bg-red-50 rounded-full" onClick={() => handleDelete(assignment.id)}>
-                                                <Trash2 className="h-4 w-4" />
-                                            </Button>
+                                            <IconTooltip label="Remove assignment">
+                                                <Button variant="ghost" size="icon" aria-label={`Remove ${assignment.user.name || assignment.user.userlogin} from ${assignment.project.name}`} className="h-9 w-9 rounded-lg text-red-500 hover:bg-red-50 hover:text-red-600" onClick={() => setPendingAction({ type: "delete", id: assignment.id, label: `${assignment.user.name || assignment.user.userlogin} from ${assignment.project.code}` })}>
+                                                    <Trash2 className="h-4 w-4" />
+                                                </Button>
+                                            </IconTooltip>
                                         </div>
                                     </TableCell>
                                 </TableRow>
@@ -372,15 +344,29 @@ export default function AssignmentsPage() {
                     </div>
                     <DialogFooter className="p-6 bg-slate-100 border-t gap-2 sm:gap-0">
                         <Button variant="outline" onClick={() => setIsDialogOpen(false)} className="border-slate-300 font-bold">
+                            <X className="mr-2 h-4 w-4" />
                             {t('common.cancel')}
                         </Button>
-                        <Button onClick={handleSave} disabled={saving} className="bg-primary hover:bg-orange-600 text-white font-bold ml-2">
-                            {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        <Button onClick={requestSave} disabled={saving} className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold ml-2">
+                            {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <UserPlus className="mr-2 h-4 w-4" />}
                             {t('assign.add')}
                         </Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
+
+            <ActionConfirmDialog
+                open={pendingAction !== null}
+                action={pendingAction?.type === "delete" ? "delete" : "create"}
+                title={pendingAction?.type === "delete" ? "Remove assignment?" : "Add assignment?"}
+                description={pendingAction?.type === "delete"
+                    ? `The assignment for ${pendingAction.label} will be removed.`
+                    : "Confirm assigning the selected user to this project."}
+                confirmLabel={pendingAction?.type === "delete" ? "Remove assignment" : "Add assignment"}
+                loading={saving}
+                onConfirm={handleConfirmedAction}
+                onOpenChange={(open) => { if (!open && !saving) setPendingAction(null) }}
+            />
 
         </div>
     )

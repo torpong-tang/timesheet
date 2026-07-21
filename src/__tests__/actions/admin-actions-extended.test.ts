@@ -22,6 +22,7 @@ describe('Admin Actions - Holiday Management', () => {
 
     describe('getHolidays', () => {
         it('should return all holidays ordered by date', async () => {
+            mockGetServerSession.mockResolvedValue(mockAdminSession)
             const mockHolidays = [
                 { id: '1', name: 'New Year', date: new Date('2026-01-01'), year: 2026, createdAt: new Date(), updatedAt: new Date() },
                 { id: '2', name: 'Songkran', date: new Date('2026-04-13'), year: 2026, createdAt: new Date(), updatedAt: new Date() },
@@ -37,6 +38,7 @@ describe('Admin Actions - Holiday Management', () => {
         })
 
         it('should return empty array when no holidays exist', async () => {
+            mockGetServerSession.mockResolvedValue(mockAdminSession)
             mockPrisma.holiday.findMany.mockResolvedValue([])
 
             const result = await getHolidays()
@@ -142,6 +144,7 @@ describe('Admin Actions - Project Assignments', () => {
 
     describe('getProjectAssignments', () => {
         it('should return all assignments with user and project details', async () => {
+            mockGetServerSession.mockResolvedValue(mockAdminSession)
             const mockAssignments = [
                 {
                     id: 'assign-1',
@@ -157,13 +160,13 @@ describe('Admin Actions - Project Assignments', () => {
             const result = await getProjectAssignments()
 
             expect(result).toEqual(mockAssignments)
-            expect(mockPrisma.projectAssignment.findMany).toHaveBeenCalledWith({
-                include: {
-                    user: true,
-                    project: true,
-                },
-                orderBy: { createdAt: 'desc' }
-            })
+            const query = mockPrisma.projectAssignment.findMany.mock.calls[0][0] as any
+            expect(query.include.user.select).toEqual(expect.objectContaining({
+                id: true,
+                userlogin: true,
+                email: true,
+            }))
+            expect(query.include.user.select).not.toHaveProperty('password')
         })
     })
 

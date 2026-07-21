@@ -1,9 +1,10 @@
 "use server"
 
 import { prisma } from "@/lib/prisma"
-import { getServerSession } from "next-auth"
-import { authOptions } from "@/lib/auth"
 import { startOfMonth, endOfMonth, subMonths, format, eachDayOfInterval, isWeekend, isSameDay } from "date-fns"
+import { requireSession } from "@/lib/authorization"
+import { identifierSchema, parseInput } from "@/lib/server-validation"
+import { z } from "zod"
 
 export type DashboardStats = {
     totalHoursMonth: number
@@ -15,8 +16,7 @@ export type DashboardStats = {
 }
 
 export async function getDashboardStats(): Promise<DashboardStats> {
-    const session = await getServerSession(authOptions)
-    if (!session) throw new Error("Unauthorized")
+    const session = await requireSession()
 
     const { role, id: userId } = session.user
     const now = new Date()
@@ -173,14 +173,18 @@ export async function getTeamData(
     filterUserId?: string,
     filterProjectId?: string
 ) {
-    const session = await getServerSession(authOptions)
-    if (!session) throw new Error("Unauthorized")
+    const session = await requireSession()
+
+    const validMonthDate = parseInput(z.coerce.date(), monthDate)
+    const validUserId = filterUserId ? parseInput(identifierSchema, filterUserId) : undefined
+    const validProjectId = filterProjectId ? parseInput(identifierSchema, filterProjectId) : undefined
 
     const { role, id: currentUserId } = session.user
     if (role === 'DEV') return { users: [], entries: [] }
+    if (role !== "PM" && role !== "GM" && role !== "ADMIN") throw new Error("Unauthorized")
 
-    const start = startOfMonth(monthDate)
-    const end = endOfMonth(monthDate)
+    const start = startOfMonth(validMonthDate)
+    const end = endOfMonth(validMonthDate)
 
     // 1. Determine Scope
     let allowedProjectIds: string[] | undefined = undefined
@@ -209,21 +213,21 @@ export async function getTeamData(
         entryWhere.projectId = { in: allowedProjectIds }
     }
 
-    if (filterUserId) {
+    if (validUserId) {
         // Validation: if PM, check if user is in allowedUserIds
-        if (allowedUserIds && !allowedUserIds.includes(filterUserId)) {
+        if (allowedUserIds && !allowedUserIds.includes(validUserId)) {
             // force empty
             entryWhere.userId = "none"
         } else {
-            entryWhere.userId = filterUserId
+            entryWhere.userId = validUserId
         }
     }
 
-    if (filterProjectId) {
-        if (allowedProjectIds && !allowedProjectIds.includes(filterProjectId)) {
+    if (validProjectId) {
+        if (allowedProjectIds && !allowedProjectIds.includes(validProjectId)) {
             entryWhere.projectId = "none"
         } else {
-            entryWhere.projectId = filterProjectId
+            entryWhere.projectId = validProjectId
         }
     }
 
@@ -261,12 +265,12 @@ export async function getTeamData(
         userWhere.id = { in: allowedUserIds }
     }
     // Apply Filter to Chart Users too
-    if (filterUserId) {
-        userWhere.id = filterUserId
+    if (validUserId) {
+        userWhere.id = validUserId
     }
-    if (filterProjectId) {
+    if (validProjectId) {
         const projectAssigns = await prisma.projectAssignment.findMany({
-            where: { projectId: filterProjectId },
+            where: { projectId: validProjectId },
             select: { userId: true }
         })
         const ids = projectAssigns.map(a => a.userId)
@@ -314,11 +318,11 @@ export async function getTeamData(
 }
 
 export async function getFilters() {
-    const session = await getServerSession(authOptions)
-    if (!session) return { users: [], projects: [] }
+    const session = await requireSession()
     const { role, id } = session.user
 
     if (role === 'DEV') return { users: [], projects: [] }
+    if (role !== "PM" && role !== "GM" && role !== "ADMIN") throw new Error("Unauthorized")
 
     let projectWhere: any = {}
     let userWhere: any = {}

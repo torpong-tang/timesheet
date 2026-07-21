@@ -11,7 +11,7 @@ test.describe('Export Project Filter Functionality', () => {
     });
 
     test('should export report filtered by project correctly', async ({ page }) => {
-        await page.goto('/dashboard/reports');
+        await page.goto('/timesheet/dashboard/reports');
 
         // Select Month "2026-03" which has seed data
         await page.fill('input[type="month"]', '2026-03');

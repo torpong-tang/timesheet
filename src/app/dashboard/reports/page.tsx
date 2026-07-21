@@ -21,29 +21,14 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { toast } from "sonner"
-import { Loader2, Download, Search, ArrowUpDown, ArrowUp, ArrowDown, LayoutList, Grip } from "lucide-react"
+import { Loader2, Download, Search, LayoutList, Grip, RefreshCw } from "lucide-react"
 import { format } from "date-fns"
 import { useSession } from "next-auth/react"
 import { cn, formatDuration } from "@/lib/utils"
 import { Pagination } from "@/components/Pagination"
 import { Combobox } from "@/components/ui/combobox"
-
-// Helper to highlight text
-const HighlightText = ({ text, highlight }: { text: string, highlight: string }) => {
-    if (!highlight.trim()) return <>{text}</>
-    const parts = text.split(new RegExp(`(${highlight})`, 'gi'))
-    return (
-        <span>
-            {parts.map((part, i) =>
-                part.toLowerCase() === highlight.toLowerCase() ? (
-                    <span key={i} className="bg-yellow-200 text-slate-900 font-bold px-0.5 rounded-sm">{part}</span>
-                ) : (
-                    part
-                )
-            )}
-        </span>
-    )
-}
+import { HighlightText } from "@/components/data-table/highlight-text"
+import { SortIndicator } from "@/components/data-table/sort-indicator"
 
 export default function ReportsPage() {
     const { data: session } = useSession()
@@ -243,13 +228,6 @@ export default function ReportsPage() {
         }))
     }
 
-    const SortIcon = ({ column }: { column: string }) => {
-        if (sortConfig?.key !== column) return <ArrowUpDown className="ml-2 h-3 w-3 inline text-stone-500" />
-        return sortConfig.direction === 'asc' ?
-            <ArrowUp className="ml-2 h-3 w-3 inline text-primary" /> :
-            <ArrowDown className="ml-2 h-3 w-3 inline text-primary" />
-    }
-
     const handleExport = async () => {
         setExporting(true)
         try {
@@ -301,7 +279,8 @@ export default function ReportsPage() {
                     </div>
                     <div className="md:col-span-3 flex justify-end">
                         <Button onClick={fetchReport} disabled={loading} size="lg" className="rounded-xl px-8 font-black uppercase tracking-widest text-xs h-11">
-                            {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Load Data"}
+                            {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
+                            {loading ? "Loading Data" : "Load Data"}
                         </Button>
                     </div>
                 </div>
@@ -398,34 +377,34 @@ export default function ReportsPage() {
                                     {viewMode === 'daily' ? (
                                         <>
                                             <TableHead className="w-[150px] cursor-pointer hover:text-primary transition-colors" onClick={() => handleSort('date')}>
-                                                Date <SortIcon column="date" />
+                                                Date <SortIndicator column="date" sortConfig={sortConfig} inactiveClassName="text-stone-500" />
                                             </TableHead>
                                             <TableHead className="cursor-pointer hover:text-primary transition-colors" onClick={() => handleSort('user.name')}>
-                                                Employee <SortIcon column="user.name" />
+                                                Employee <SortIndicator column="user.name" sortConfig={sortConfig} inactiveClassName="text-stone-500" />
                                             </TableHead>
                                             <TableHead className="cursor-pointer hover:text-primary transition-colors" onClick={() => handleSort('project.code')}>
-                                                Project <SortIcon column="project.code" />
+                                                Project <SortIndicator column="project.code" sortConfig={sortConfig} inactiveClassName="text-stone-500" />
                                             </TableHead>
                                             <TableHead className="w-[40%] cursor-pointer hover:text-primary transition-colors" onClick={() => handleSort('description')}>
-                                                Description <SortIcon column="description" />
+                                                Description <SortIndicator column="description" sortConfig={sortConfig} inactiveClassName="text-stone-500" />
                                             </TableHead>
                                             <TableHead className="text-right cursor-pointer hover:text-primary transition-colors" onClick={() => handleSort('hours')}>
-                                                Hours <SortIcon column="hours" />
+                                                Hours <SortIndicator column="hours" sortConfig={sortConfig} inactiveClassName="text-stone-500" />
                                             </TableHead>
                                         </>
                                     ) : (
                                         <>
                                             <TableHead className="cursor-pointer hover:text-primary transition-colors" onClick={() => handleSort('user.name')}>
-                                                Employee <SortIcon column="user.name" />
+                                                Employee <SortIndicator column="user.name" sortConfig={sortConfig} inactiveClassName="text-stone-500" />
                                             </TableHead>
                                             <TableHead className="cursor-pointer hover:text-primary transition-colors" onClick={() => handleSort('project.code')}>
-                                                Project Code <SortIcon column="project.code" />
+                                                Project Code <SortIndicator column="project.code" sortConfig={sortConfig} inactiveClassName="text-stone-500" />
                                             </TableHead>
                                             <TableHead className="cursor-pointer hover:text-primary transition-colors" onClick={() => handleSort('project.name')}>
-                                                Project Name <SortIcon column="project.name" />
+                                                Project Name <SortIndicator column="project.name" sortConfig={sortConfig} inactiveClassName="text-stone-500" />
                                             </TableHead>
                                             <TableHead className="text-right cursor-pointer hover:text-primary transition-colors" onClick={() => handleSort('hours')}>
-                                                Total Hours <SortIcon column="hours" />
+                                                Total Hours <SortIndicator column="hours" sortConfig={sortConfig} inactiveClassName="text-stone-500" />
                                             </TableHead>
                                         </>
                                     )}

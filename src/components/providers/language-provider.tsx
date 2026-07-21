@@ -16,6 +16,7 @@ const translations: Record<Language, Record<string, string>> = {
         // General
         "app.title": "Timesheet App",
         "common.cancel": "Cancel",
+        "common.save": "Save",
         "common.delete": "Delete",
         "common.edit": "Edit",
         "common.search": "Search...",

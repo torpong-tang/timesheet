@@ -10,7 +10,7 @@ test.describe('Pagination Components', () => {
 
     test('Admin Users Page Pagination', async ({ page }) => {
         // Navigate to Users Page
-        await page.goto('/admin/users');
+        await page.goto('/timesheet/admin/users');
 
         // Wait for loading to finish
         await expect(page.locator('text=Fetching team...')).not.toBeVisible();
@@ -82,7 +82,7 @@ test.describe('Pagination Components', () => {
 
     test('Reports Page Pagination (Mock Data)', async ({ page }) => {
         // Since Reports might vary, we can check basic presence
-        await page.goto('/dashboard/reports');
+        await page.goto('/timesheet/dashboard/reports');
         await page.fill('input[type="month"]', '2026-03');
         await page.click('button:has-text("Load Data")');
 

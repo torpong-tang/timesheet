@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 test.describe('Login Page', () => {
 
     test.beforeEach(async ({ page }) => {
-        await page.goto('/login/');
+        await page.goto('/timesheet/login/');
     });
 
     test('TC-01: Login page should display correctly', async ({ page }) => {
@@ -22,9 +22,10 @@ test.describe('Login Page', () => {
     });
 
     test('TC-02: Login with valid credentials (Torpong.T)', async ({ page }) => {
+        test.skip(!process.env.E2E_ADMIN_PASSWORD, 'E2E_ADMIN_PASSWORD is required');
         // Fill in valid credentials
         await page.fill('#userlogin', 'Torpong.T');
-        await page.fill('#password', 'password123');
+        await page.fill('#password', process.env.E2E_ADMIN_PASSWORD!);
 
         // Submit login form
         await page.click('button[type="submit"]');
@@ -51,7 +52,7 @@ test.describe('Login Page', () => {
     test('TC-04: Login with non-existent user should show error', async ({ page }) => {
         // Fill in non-existent user
         await page.fill('#userlogin', 'nonexistent.user');
-        await page.fill('#password', 'password123');
+        await page.fill('#password', 'Invalid!Password123');
 
         // Submit login form
         await page.click('button[type="submit"]');
@@ -70,23 +71,24 @@ test.describe('Login Page', () => {
 
     test('TC-06: Dashboard redirects to login when not authenticated', async ({ page }) => {
         // Try to access dashboard directly without login
-        await page.goto('/dashboard/');
+        await page.goto('/timesheet/dashboard/');
 
         // Should redirect to login page
         await expect(page).toHaveURL(/.*login/, { timeout: 10000 });
     });
 
     test('TC-07: After login, user can access dashboard and see their name', async ({ page }) => {
+        test.skip(!process.env.E2E_ADMIN_PASSWORD, 'E2E_ADMIN_PASSWORD is required');
         // Login
         await page.fill('#userlogin', 'Torpong.T');
-        await page.fill('#password', 'password123');
+        await page.fill('#password', process.env.E2E_ADMIN_PASSWORD!);
         await page.click('button[type="submit"]');
 
         // Wait for dashboard
         await expect(page).toHaveURL(/.*dashboard/, { timeout: 15000 });
 
         // Verify user name is displayed on dashboard
-        await expect(page.locator('text=Torpong T')).toBeVisible({ timeout: 10000 });
+        await expect(page.getByText('Torpong T', { exact: true }).first()).toBeVisible({ timeout: 10000 });
     });
 
 });

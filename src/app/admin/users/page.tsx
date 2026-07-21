@@ -1,8 +1,8 @@
 "use client"
 
-import { useState, useEffect, useMemo } from "react"
+import { useState, useEffect } from "react"
 import { getUsers, upsertUser, deleteUser } from "@/app/admin-actions"
-import { User } from "@prisma/client"
+import type { SafeUser } from "@/app/admin-actions"
 import { Pagination } from "@/components/Pagination"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -18,6 +18,7 @@ import {
 import {
     Dialog,
     DialogContent,
+    DialogDescription,
     DialogHeader,
     DialogTitle,
     DialogFooter,
@@ -32,39 +33,36 @@ import {
 import { Combobox } from "@/components/ui/combobox"
 import { Switch } from "@/components/ui/switch"
 import { useLanguage } from "@/components/providers/language-provider"
+import { HighlightText } from "@/components/data-table/highlight-text"
+import { SortIndicator } from "@/components/data-table/sort-indicator"
+import { useClientTable } from "@/hooks/use-client-table"
+import { ActionConfirmDialog } from "@/components/ui/action-confirm-dialog"
+import { IconTooltip } from "@/components/ui/icon-tooltip"
 import { toast } from "sonner"
-import { Loader2, Plus, Pencil, Trash2, Search, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react"
+import { Loader2, Plus, Pencil, Save, Trash2, Search, X } from "lucide-react"
 
-// Helper to highlight text
-const HighlightText = ({ text, highlight }: { text: string, highlight: string }) => {
-    if (!highlight.trim()) return <>{text}</>
-    const parts = text.split(new RegExp(`(${highlight})`, 'gi'))
-    return (
-        <span>
-            {parts.map((part, i) =>
-                part.toLowerCase() === highlight.toLowerCase() ? (
-                    <span key={i} className="bg-yellow-200 text-slate-900 font-bold px-0.5 rounded-sm">{part}</span>
-                ) : (
-                    part
-                )
-            )}
-        </span>
+const matchesUserSearch = (user: SafeUser, query: string) =>
+    Boolean(
+        user.name?.toLocaleLowerCase().includes(query) ||
+        user.userlogin.toLocaleLowerCase().includes(query) ||
+        user.email?.toLocaleLowerCase().includes(query) ||
+        user.role.toLocaleLowerCase().includes(query)
     )
-}
+
+const getUserSortValue = (user: SafeUser, key: keyof SafeUser) => user[key]
+
+type PendingAction =
+    | { type: "save" }
+    | { type: "delete"; id: string; label: string }
 
 
 export default function UsersPage() {
     const { t, language } = useLanguage()
-    const [users, setUsers] = useState<User[]>([])
+    const [users, setUsers] = useState<SafeUser[]>([])
     const [loading, setLoading] = useState(true)
     const [isDialogOpen, setIsDialogOpen] = useState(false)
     const [saving, setSaving] = useState(false)
-
-    // Data Grid State
-    const [searchQuery, setSearchQuery] = useState("")
-    const [sortConfig, setSortConfig] = useState<{ key: keyof User, direction: 'asc' | 'desc' } | null>(null)
-    const [page, setPage] = useState(1)
-    const [pageSize, setPageSize] = useState(10)
+    const [pendingAction, setPendingAction] = useState<PendingAction | null>(null)
 
     // Form State
     const [editingId, setEditingId] = useState<string | null>(null)
@@ -92,59 +90,28 @@ export default function UsersPage() {
         loadUsers()
     }, [])
 
-    // --- Data Processing ---
-    const processedUsers = useMemo(() => {
-        let data = [...users]
-
-        // 1. Search
-        if (searchQuery.trim()) {
-            const lowerQ = searchQuery.toLowerCase()
-            data = data.filter(user =>
-                user.name?.toLowerCase().includes(lowerQ) ||
-                user.userlogin.toLowerCase().includes(lowerQ) ||
-                user.email?.toLowerCase().includes(lowerQ) ||
-                user.role.toLowerCase().includes(lowerQ)
-            )
-        }
-
-        // 2. Sort
-        if (sortConfig) {
-            data.sort((a, b) => {
-                // Handle potential nulls
-                const aVal = (a[sortConfig.key] || "").toString().toLowerCase()
-                const bVal = (b[sortConfig.key] || "").toString().toLowerCase()
-
-                if (aVal < bVal) return sortConfig.direction === 'asc' ? -1 : 1
-                if (aVal > bVal) return sortConfig.direction === 'asc' ? 1 : -1
-                return 0
-            })
-        }
-
-        return data
-    }, [users, searchQuery, sortConfig])
-
-    // Pagination
-    const totalPages = Math.ceil(processedUsers.length / pageSize)
-    const paginatedUsers = processedUsers.slice((page - 1) * pageSize, page * pageSize)
-
-    const handleSort = (key: keyof User) => {
-        setSortConfig(current => ({
-            key,
-            direction: current?.key === key && current.direction === 'asc' ? 'desc' : 'asc'
-        }))
-    }
-
-    const SortIcon = ({ column }: { column: keyof User }) => {
-        if (sortConfig?.key !== column) return <ArrowUpDown className="ml-2 h-3 w-3 inline text-slate-600" />
-        return sortConfig.direction === 'asc' ?
-            <ArrowUp className="ml-2 h-3 w-3 inline text-primary" /> :
-            <ArrowDown className="ml-2 h-3 w-3 inline text-primary" />
-    }
+    const {
+        page,
+        pageSize,
+        paginatedItems: paginatedUsers,
+        processedItems: processedUsers,
+        searchQuery,
+        setPage,
+        setPageSize,
+        setSearchQuery,
+        sortConfig,
+        toggleSort: handleSort,
+        totalPages,
+    } = useClientTable<SafeUser, keyof SafeUser>({
+        items: users,
+        matchesSearch: matchesUserSearch,
+        getSortValue: getUserSortValue,
+    })
 
 
     // --- Actions ---
 
-    const handleEdit = (user: User) => {
+    const handleEdit = (user: SafeUser) => {
         setEditingId(user.id)
         setFormData({
             userlogin: user.userlogin,
@@ -180,23 +147,49 @@ export default function UsersPage() {
             })
             toast.success(editingId ? "User updated" : "User created")
             setIsDialogOpen(false)
-            loadUsers()
+            await loadUsers()
         } catch (err: any) {
             toast.error(err.message || "Operation failed")
         } finally {
             setSaving(false)
+            setPendingAction(null)
         }
     }
 
     const handleDelete = async (id: string) => {
-        if (!confirm("Are you sure? This action cannot be undone.")) return
+        setSaving(true)
         try {
             await deleteUser(id)
             toast.success("User deleted")
-            loadUsers()
+            await loadUsers()
         } catch (err) {
             toast.error("Failed to delete user")
+        } finally {
+            setSaving(false)
+            setPendingAction(null)
         }
+    }
+
+    const handleConfirmedAction = async () => {
+        if (!pendingAction) return
+        if (pendingAction.type === "save") await handleSave()
+        else await handleDelete(pendingAction.id)
+    }
+
+    const requestSave = () => {
+        if (!formData.userlogin.trim() || !formData.name.trim() || !formData.email.trim()) {
+            toast.error("Username, name and email are required")
+            return
+        }
+        if (!editingId && !formData.password) {
+            toast.error("Password is required for a new user")
+            return
+        }
+        if (formData.password && !/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{12,128}$/.test(formData.password)) {
+            toast.error("Password needs 12+ characters with upper, lower, number and symbol")
+            return
+        }
+        setPendingAction({ type: "save" })
     }
 
     return (
@@ -239,16 +232,16 @@ export default function UsersPage() {
                         <TableHeader className="bg-slate-100/50">
                             <TableRow className="hover:bg-transparent border-slate-100">
                                 <TableHead className="font-bold text-slate-900 cursor-pointer hover:text-primary transition-colors" onClick={() => handleSort('userlogin')}>
-                                    {t('users.table.login')} <SortIcon column="userlogin" />
+                                    {t('users.table.login')} <SortIndicator column="userlogin" sortConfig={sortConfig} />
                                 </TableHead>
                                 <TableHead className="font-bold text-slate-900 cursor-pointer hover:text-primary transition-colors" onClick={() => handleSort('name')}>
-                                    {t('users.table.name')} <SortIcon column="name" />
+                                    {t('users.table.name')} <SortIndicator column="name" sortConfig={sortConfig} />
                                 </TableHead>
                                 <TableHead className="font-bold text-slate-900 cursor-pointer hover:text-primary transition-colors" onClick={() => handleSort('email')}>
-                                    {t('users.table.contact')} <SortIcon column="email" />
+                                    {t('users.table.contact')} <SortIndicator column="email" sortConfig={sortConfig} />
                                 </TableHead>
                                 <TableHead className="font-bold text-slate-900 cursor-pointer hover:text-primary transition-colors" onClick={() => handleSort('role')}>
-                                    {t('users.table.role')} <SortIcon column="role" />
+                                    {t('users.table.role')} <SortIndicator column="role" sortConfig={sortConfig} />
                                 </TableHead>
                                 <TableHead className="font-bold text-slate-900">
                                     {t('users.table.status')}
@@ -303,12 +296,16 @@ export default function UsersPage() {
                                     </TableCell>
                                     <TableCell className="text-right px-6">
                                         <div className="flex justify-end gap-2">
-                                            <Button variant="ghost" size="icon" className="h-9 w-9 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-full" onClick={() => handleEdit(user)}>
-                                                <Pencil className="h-4 w-4" />
-                                            </Button>
-                                            <Button variant="ghost" size="icon" className="h-9 w-9 text-red-500 hover:text-red-600 hover:bg-red-50 rounded-full" onClick={() => handleDelete(user.id)}>
-                                                <Trash2 className="h-4 w-4" />
-                                            </Button>
+                                            <IconTooltip label="Edit user">
+                                                <Button aria-label={`Edit ${user.userlogin}`} variant="ghost" size="icon" className="h-9 w-9 rounded-lg text-blue-600 hover:bg-blue-50 hover:text-blue-700" onClick={() => handleEdit(user)}>
+                                                    <Pencil className="h-4 w-4" />
+                                                </Button>
+                                            </IconTooltip>
+                                            <IconTooltip label="Delete user">
+                                                <Button aria-label={`Delete ${user.userlogin}`} variant="ghost" size="icon" className="h-9 w-9 rounded-lg text-red-500 hover:bg-red-50 hover:text-red-600" onClick={() => setPendingAction({ type: "delete", id: user.id, label: user.userlogin })}>
+                                                    <Trash2 className="h-4 w-4" />
+                                                </Button>
+                                            </IconTooltip>
                                         </div>
                                     </TableCell>
                                 </TableRow>
@@ -349,6 +346,11 @@ export default function UsersPage() {
                         <DialogTitle className="text-2xl font-black text-slate-900">
                             {editingId ? t('users.dialog.edit') : t('users.dialog.add')}
                         </DialogTitle>
+                        <DialogDescription className="text-sm text-slate-600">
+                            {editingId
+                                ? "Update this member's identity, role, status, and credentials."
+                                : "Create a member account and assign its initial access role."}
+                        </DialogDescription>
                     </DialogHeader>
                     <div className="grid gap-6 p-6">
                         <div className="grid grid-cols-2 gap-4">
@@ -414,24 +416,40 @@ export default function UsersPage() {
                                 value={formData.password}
                                 onChange={e => setFormData({ ...formData, password: e.target.value })}
                                 type="password"
-                                placeholder="******"
+                                minLength={12}
+                                maxLength={128}
+                                autoComplete="new-password"
+                                placeholder="12+ chars with upper, lower, number and symbol"
                                 className="bg-slate-100 border-slate-200"
                             />
                         </div>
                     </div>
                     <DialogFooter className="p-6 bg-slate-100 border-t gap-2 sm:gap-0">
                         <Button variant="outline" onClick={() => setIsDialogOpen(false)} className="border-slate-300 font-bold">
+                            <X className="h-4 w-4" />
                             {t('common.cancel')}
                         </Button>
-                        <Button onClick={handleSave} disabled={saving} className="bg-primary hover:bg-orange-600 text-white font-bold ml-2">
-                            {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        <Button onClick={requestSave} disabled={saving} className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold ml-2">
+                            {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
                             {t('common.save')}
                         </Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
 
+            <ActionConfirmDialog
+                open={pendingAction !== null}
+                action={pendingAction?.type === "delete" ? "delete" : editingId ? "update" : "create"}
+                title={pendingAction?.type === "delete" ? "Delete user?" : editingId ? "Update user?" : "Create user?"}
+                description={pendingAction?.type === "delete"
+                    ? `User “${pendingAction.label}” will be permanently deleted.`
+                    : `Confirm the ${editingId ? "changes to" : "creation of"} user “${formData.userlogin || "this user"}”.`}
+                confirmLabel={pendingAction?.type === "delete" ? "Delete" : editingId ? "Update" : "Create"}
+                loading={saving}
+                onConfirm={handleConfirmedAction}
+                onOpenChange={(open) => !open && setPendingAction(null)}
+            />
+
         </div>
     )
 }
-

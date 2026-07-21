@@ -1,6 +1,8 @@
 @import "tailwindcss";
 
 @theme {
+  --font-sans: var(--font-prompt), "Noto Sans Thai", ui-sans-serif, system-ui, sans-serif;
+
   --color-background: #1c1917;
   /* Stone 900 - Dark base */
   --color-foreground: #fafaf9;
@@ -66,6 +68,13 @@
       linear-gradient(135deg, #1c1917 0%, #0c0a09 100%);
     min-height: 100vh;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+
+  button,
+  input,
+  select,
+  textarea {
+    font: inherit;
   }
 }
 

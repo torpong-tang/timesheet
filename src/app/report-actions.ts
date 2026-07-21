@@ -1,10 +1,10 @@
 "use server"
 
 import { prisma } from "@/lib/prisma"
-import { getServerSession } from "next-auth"
-import { authOptions } from "@/lib/auth"
 import ExcelJS from "exceljs"
 import { format } from "date-fns"
+import { requireSession } from "@/lib/authorization"
+import { parseInput, reportFilterSchema } from "@/lib/server-validation"
 
 export type ReportFilter = {
     month: string // "YYYY-MM"
@@ -24,13 +24,13 @@ export type ReportEntry = {
 }
 
 export async function getReportData(filter: ReportFilter) {
-    const session = await getServerSession(authOptions)
-    if (!session?.user) throw new Error("Unauthorized")
+    const session = await requireSession()
+    const input = parseInput(reportFilterSchema, filter)
 
     const { role, id: currentUserId } = session.user
 
     // Parse Date Range
-    const [year, month] = filter.month.split("-").map(Number)
+    const [year, month] = input.month.split("-").map(Number)
     const startDate = new Date(year, month - 1, 1) // Start of month
     const endDate = new Date(year, month, 0) // End of month (last day)
 
@@ -41,8 +41,8 @@ export async function getReportData(filter: ReportFilter) {
         }
     }
 
-    if (filter.projectId) {
-        whereClause.projectId = filter.projectId
+    if (input.projectId) {
+        whereClause.projectId = input.projectId
     }
 
     // Role-Based Filtering
@@ -60,9 +60,9 @@ export async function getReportData(filter: ReportFilter) {
         })
         const allowedProjectIds = assignments.map(a => a.projectId)
 
-        if (filter.projectId) {
+        if (input.projectId) {
             // Verify access
-            if (!allowedProjectIds.includes(filter.projectId)) {
+            if (!allowedProjectIds.includes(input.projectId)) {
                 return [] // No access to this project
             }
         } else {
@@ -70,14 +70,16 @@ export async function getReportData(filter: ReportFilter) {
             whereClause.projectId = { in: allowedProjectIds }
         }
 
-        if (filter.userId) {
-            whereClause.userId = filter.userId
+        if (input.userId) {
+            whereClause.userId = input.userId
+        }
+    } else if (role === "ADMIN" || role === "GM") {
+        // ADMIN or GM: Access everything
+        if (input.userId) {
+            whereClause.userId = input.userId
         }
     } else {
-        // ADMIN or GM: Access everything
-        if (filter.userId) {
-            whereClause.userId = filter.userId
-        }
+        throw new Error("Unauthorized")
     }
 
     const data = await prisma.timesheetEntry.findMany({

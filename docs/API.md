@@ -440,7 +440,7 @@ interface AuditLog {
 
 ## Rate Limiting
 
-Currently no rate limiting is implemented. Consider adding for production.
+Credential login is rate-limited per forwarded client IP and username. Nginx should also apply an edge-level request limit to the NextAuth callback and other write-heavy endpoints.
 
 ---
 

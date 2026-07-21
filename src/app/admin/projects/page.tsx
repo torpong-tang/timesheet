@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useMemo } from "react"
+import { useState, useEffect } from "react"
 import { getProjects, upsertProject, deleteProject } from "@/app/admin-actions"
 import { Project } from "@prisma/client"
 import { Pagination } from "@/components/Pagination"
@@ -30,26 +30,24 @@ import {
     SelectValue,
 } from "@/components/ui/select"
 import { useLanguage } from "@/components/providers/language-provider"
+import { HighlightText } from "@/components/data-table/highlight-text"
+import { SortIndicator } from "@/components/data-table/sort-indicator"
+import { useClientTable } from "@/hooks/use-client-table"
+import { ActionConfirmDialog } from "@/components/ui/action-confirm-dialog"
+import { IconTooltip } from "@/components/ui/icon-tooltip"
 import { toast } from "sonner"
-import { Loader2, Plus, Pencil, Trash2, Search, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react"
+import { Loader2, Plus, Pencil, Trash2, Search, Save, X } from "lucide-react"
 import { format } from "date-fns"
 
-// Helper to highlight text
-const HighlightText = ({ text, highlight }: { text: string, highlight: string }) => {
-    if (!highlight.trim()) return <>{text}</>
-    const parts = text.split(new RegExp(`(${highlight})`, 'gi'))
-    return (
-        <span>
-            {parts.map((part, i) =>
-                part.toLowerCase() === highlight.toLowerCase() ? (
-                    <span key={i} className="bg-yellow-200 text-slate-900 font-bold px-0.5 rounded-sm">{part}</span>
-                ) : (
-                    part
-                )
-            )}
-        </span>
-    )
-}
+const matchesProjectSearch = (project: Project, query: string) =>
+    project.code.toLocaleLowerCase().includes(query) ||
+    project.name.toLocaleLowerCase().includes(query)
+
+const getProjectSortValue = (project: Project, key: keyof Project) => project[key]
+
+type PendingAction =
+    | { type: "save" }
+    | { type: "delete"; id: string; label: string }
 
 export default function ProjectsPage() {
     const { t, language } = useLanguage()
@@ -57,12 +55,7 @@ export default function ProjectsPage() {
     const [loading, setLoading] = useState(true)
     const [isDialogOpen, setIsDialogOpen] = useState(false)
     const [saving, setSaving] = useState(false)
-
-    // Data Grid State
-    const [searchQuery, setSearchQuery] = useState("")
-    const [sortConfig, setSortConfig] = useState<{ key: keyof Project, direction: 'asc' | 'desc' } | null>(null)
-    const [page, setPage] = useState(1)
-    const [pageSize, setPageSize] = useState(10)
+    const [pendingAction, setPendingAction] = useState<PendingAction | null>(null)
 
     // Form State
     const [editingId, setEditingId] = useState<string | null>(null)
@@ -89,51 +82,23 @@ export default function ProjectsPage() {
         loadProjects()
     }, [])
 
-    // --- Data Processing ---
-    const processedProjects = useMemo(() => {
-        let data = [...projects]
-
-        // 1. Search
-        if (searchQuery.trim()) {
-            const lowerQ = searchQuery.toLowerCase()
-            data = data.filter(p =>
-                p.code.toLowerCase().includes(lowerQ) ||
-                p.name.toLowerCase().includes(lowerQ)
-            )
-        }
-
-        // 2. Sort
-        if (sortConfig) {
-            data.sort((a, b) => {
-                const aVal = (a[sortConfig.key] || "").toString().toLowerCase()
-                const bVal = (b[sortConfig.key] || "").toString().toLowerCase()
-
-                if (aVal < bVal) return sortConfig.direction === 'asc' ? -1 : 1
-                if (aVal > bVal) return sortConfig.direction === 'asc' ? 1 : -1
-                return 0
-            })
-        }
-
-        return data
-    }, [projects, searchQuery, sortConfig])
-
-    // Pagination
-    const totalPages = Math.ceil(processedProjects.length / pageSize)
-    const paginatedProjects = processedProjects.slice((page - 1) * pageSize, page * pageSize)
-
-    const handleSort = (key: keyof Project) => {
-        setSortConfig(current => ({
-            key,
-            direction: current?.key === key && current.direction === 'asc' ? 'desc' : 'asc'
-        }))
-    }
-
-    const SortIcon = ({ column }: { column: keyof Project }) => {
-        if (sortConfig?.key !== column) return <ArrowUpDown className="ml-2 h-3 w-3 inline text-slate-600" />
-        return sortConfig.direction === 'asc' ?
-            <ArrowUp className="ml-2 h-3 w-3 inline text-primary" /> :
-            <ArrowDown className="ml-2 h-3 w-3 inline text-primary" />
-    }
+    const {
+        page,
+        pageSize,
+        paginatedItems: paginatedProjects,
+        processedItems: processedProjects,
+        searchQuery,
+        setPage,
+        setPageSize,
+        setSearchQuery,
+        sortConfig,
+        toggleSort: handleSort,
+        totalPages,
+    } = useClientTable<Project, keyof Project>({
+        items: projects,
+        matchesSearch: matchesProjectSearch,
+        getSortValue: getProjectSortValue,
+    })
 
 
     // --- Actions ---
@@ -179,7 +144,7 @@ export default function ProjectsPage() {
             })
             toast.success(editingId ? "Project updated" : "Project created")
             setIsDialogOpen(false)
-            loadProjects()
+            await loadProjects()
         } catch (err: any) {
             toast.error(err.message || "Operation failed")
         } finally {
@@ -188,14 +153,35 @@ export default function ProjectsPage() {
     }
 
     const handleDelete = async (id: string) => {
-        if (!confirm("Are you sure? This action cannot be undone.")) return
+        setSaving(true)
         try {
             await deleteProject(id)
             toast.success("Project deleted")
-            loadProjects()
+            await loadProjects()
         } catch (err) {
             toast.error("Failed to delete project")
+        } finally {
+            setSaving(false)
+            setPendingAction(null)
         }
+    }
+
+    const requestSave = () => {
+        if (!formData.code.trim() || !formData.name.trim() || !formData.startDate || !formData.endDate) {
+            toast.error("Code, name, start date and end date are required")
+            return
+        }
+        setPendingAction({ type: "save" })
+    }
+
+    const handleConfirmedAction = async () => {
+        if (!pendingAction) return
+        if (pendingAction.type === "save") {
+            await handleSave()
+            setPendingAction(null)
+            return
+        }
+        await handleDelete(pendingAction.id)
     }
 
     return (
@@ -238,16 +224,16 @@ export default function ProjectsPage() {
                         <TableHeader className="bg-slate-100/50">
                             <TableRow className="hover:bg-transparent border-slate-200">
                                 <TableHead className="font-bold text-slate-900 cursor-pointer hover:text-primary transition-colors" onClick={() => handleSort('code')}>
-                                    {t('proj.table.code')} <SortIcon column="code" />
+                                    {t('proj.table.code')} <SortIndicator column="code" sortConfig={sortConfig} />
                                 </TableHead>
                                 <TableHead className="font-bold text-slate-900 cursor-pointer hover:text-primary transition-colors" onClick={() => handleSort('name')}>
-                                    {t('proj.table.name')} <SortIcon column="name" />
+                                    {t('proj.table.name')} <SortIndicator column="name" sortConfig={sortConfig} />
                                 </TableHead>
                                 <TableHead className="font-bold text-slate-900 cursor-pointer hover:text-primary transition-colors" onClick={() => handleSort('startDate')}>
-                                    {t('proj.table.timeline')} <SortIcon column="startDate" />
+                                    {t('proj.table.timeline')} <SortIndicator column="startDate" sortConfig={sortConfig} />
                                 </TableHead>
                                 <TableHead className="font-bold text-slate-900 cursor-pointer hover:text-primary transition-colors" onClick={() => handleSort('budget')}>
-                                    {t('proj.table.budget')} <SortIcon column="budget" />
+                                    {t('proj.table.budget')} <SortIndicator column="budget" sortConfig={sortConfig} />
                                 </TableHead>
                                 <TableHead className="text-right font-bold text-slate-900 px-6">{t('common.actions')}</TableHead>
                             </TableRow>
@@ -290,12 +276,16 @@ export default function ProjectsPage() {
                                     </TableCell>
                                     <TableCell className="text-right px-6">
                                         <div className="flex justify-end gap-2">
-                                            <Button variant="ghost" size="icon" className="h-9 w-9 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-full" onClick={() => handleEdit(project)}>
-                                                <Pencil className="h-4 w-4" />
-                                            </Button>
-                                            <Button variant="ghost" size="icon" className="h-9 w-9 text-red-500 hover:text-red-600 hover:bg-red-50 rounded-full" onClick={() => handleDelete(project.id)}>
-                                                <Trash2 className="h-4 w-4" />
-                                            </Button>
+                                            <IconTooltip label="Edit project">
+                                                <Button variant="ghost" size="icon" aria-label={`Edit ${project.name}`} className="h-9 w-9 rounded-lg text-blue-600 hover:bg-blue-50 hover:text-blue-700" onClick={() => handleEdit(project)}>
+                                                    <Pencil className="h-4 w-4" />
+                                                </Button>
+                                            </IconTooltip>
+                                            <IconTooltip label="Delete project">
+                                                <Button variant="ghost" size="icon" aria-label={`Delete ${project.name}`} className="h-9 w-9 rounded-lg text-red-500 hover:bg-red-50 hover:text-red-600" onClick={() => setPendingAction({ type: "delete", id: project.id, label: `${project.code} - ${project.name}` })}>
+                                                    <Trash2 className="h-4 w-4" />
+                                                </Button>
+                                            </IconTooltip>
                                         </div>
                                     </TableCell>
                                 </TableRow>
@@ -394,15 +384,29 @@ export default function ProjectsPage() {
                     </div>
                     <DialogFooter className="p-6 bg-slate-100 border-t gap-2 sm:gap-0">
                         <Button variant="outline" onClick={() => setIsDialogOpen(false)} className="border-slate-300 font-bold">
+                            <X className="mr-2 h-4 w-4" />
                             {t('common.cancel')}
                         </Button>
-                        <Button onClick={handleSave} disabled={saving} className="bg-primary hover:bg-orange-600 text-white font-bold ml-2">
-                            {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        <Button onClick={requestSave} disabled={saving} className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold ml-2">
+                            {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
                             {t('proj.save')}
                         </Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
+
+            <ActionConfirmDialog
+                open={pendingAction !== null}
+                action={pendingAction?.type === "delete" ? "delete" : editingId ? "update" : "create"}
+                title={pendingAction?.type === "delete" ? "Delete project?" : editingId ? "Update project?" : "Create project?"}
+                description={pendingAction?.type === "delete"
+                    ? `Project ${pendingAction.label} will be permanently deleted.`
+                    : `Confirm ${editingId ? "updating" : "creating"} project ${formData.code || formData.name}.`}
+                confirmLabel={pendingAction?.type === "delete" ? "Delete project" : editingId ? "Update project" : "Create project"}
+                loading={saving}
+                onConfirm={handleConfirmedAction}
+                onOpenChange={(open) => { if (!open && !saving) setPendingAction(null) }}
+            />
 
         </div>
     )

@@ -15,6 +15,7 @@ export const metadata: Metadata = {
 
 import { Providers } from "@/components/providers/session-provider";
 import { Toaster } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 export default function RootLayout({
   children,
@@ -28,6 +29,7 @@ export default function RootLayout({
         suppressHydrationWarning
       >
         <Providers>
+          <TooltipProvider>
           <div className="min-h-screen flex flex-col">
             <main className="flex-1">{children}</main>
             <footer className="border-t border-stone-800/80 px-4 py-5 text-center text-xs font-medium text-stone-500">
@@ -35,6 +37,7 @@ export default function RootLayout({
             </footer>
           </div>
           <Toaster />
+          </TooltipProvider>
         </Providers>
       </body>
     </html>

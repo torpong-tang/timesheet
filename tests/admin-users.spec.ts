@@ -5,6 +5,7 @@ import { loginAsAdmin } from './helpers/auth';
 const prisma = new PrismaClient();
 
 test.describe('Admin Users Management', () => {
+    test.skip(!process.env.E2E_ADMIN_PASSWORD, 'E2E_ADMIN_PASSWORD is required');
 
     test.beforeEach(async ({ page }) => {
         // Login as Admin using helper with proper waiting
@@ -12,13 +13,13 @@ test.describe('Admin Users Management', () => {
     });
 
     test('should display User Login and Status columns', async ({ page }) => {
-        await page.goto('/admin/users');
+        await page.goto('/timesheet/admin/users');
         await expect(page.locator('text=Fetching team...')).not.toBeVisible();
 
         // Check headers
         const headers = page.locator('thead tr th');
-        await expect(headers.filter({ hasText: 'User Login' })).toBeVisible();
-        await expect(headers.filter({ hasText: 'Status' })).toBeVisible();
+        await expect(headers.filter({ hasText: 'User Login' }).first()).toBeVisible();
+        await expect(headers.filter({ hasText: 'Status' }).first()).toBeVisible();
 
         // Check data row content
         // Search for Torpong.T to ensure it is visible even if on page 2
@@ -35,14 +36,16 @@ test.describe('Admin Users Management', () => {
     });
 
     test('should add a new user with default Enable status', async ({ page }) => {
-        await page.goto('/admin/users');
+        await page.goto('/timesheet/admin/users');
 
         await page.click('button:has-text("Add User")');
         await expect(page.locator('div[role="dialog"]')).toBeVisible();
 
         // Check default status
-        const statusSelect = page.locator('div[role="dialog"] label:has-text("Status") + button');
-        await expect(statusSelect).toContainText('Enable');
+        const userDialog = page.getByRole('dialog');
+        const statusSwitch = userDialog.getByRole('switch');
+        await expect(statusSwitch).toBeChecked();
+        await expect(userDialog.getByText('Enable', { exact: true })).toBeVisible();
 
         // Fill form
         const randomSuffix = Math.floor(Math.random() * 10000);
@@ -51,10 +54,11 @@ test.describe('Admin Users Management', () => {
         await page.fill('input[placeholder="Torpong.T"]', newUserLogin);
         await page.fill('input[placeholder="Torpong T."]', `Test User ${randomSuffix}`);
         await page.fill('input[placeholder="torpong@example.com"]', `test${randomSuffix}@example.com`);
-        await page.fill('input[type="password"]', 'password123');
+        await page.fill('input[type="password"]', 'StrongPass!123');
 
         // Save
-        await page.click('button:has-text("Save User")');
+        await userDialog.getByRole('button', { name: /^Save$/ }).click();
+        await page.getByRole('alertdialog').getByRole('button', { name: 'Create' }).click();
 
         // Match toast more loosely or wait for it
         await expect(page.locator('text=User created')).toBeVisible({ timeout: 5000 });
@@ -91,7 +95,7 @@ test.describe('Admin Users Management', () => {
             }
         });
 
-        await page.goto('/admin/users');
+        await page.goto('/timesheet/admin/users');
         await page.fill('input[placeholder="Search users..."]', userLogin);
 
         // Wait for table to update
@@ -107,10 +111,12 @@ test.describe('Admin Users Management', () => {
         await expect(page.locator('div[role="dialog"]')).toContainText('Edit User Account');
 
         // Change Status to Disable
-        await page.click('div[role="dialog"] label:has-text("Status") + button');
-        await page.click('div[role="option"]:has-text("Disable")');
+        const editDialog = page.getByRole('dialog');
+        await editDialog.getByRole('switch').click();
+        await expect(editDialog.getByText('Disable', { exact: true })).toBeVisible();
 
-        await page.click('button:has-text("Save User")');
+        await editDialog.getByRole('button', { name: /^Save$/ }).click();
+        await page.getByRole('alertdialog').getByRole('button', { name: 'Update' }).click();
         await expect(page.locator('text=User updated')).toBeVisible({ timeout: 5000 });
 
         // Verify Change

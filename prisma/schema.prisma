@@ -14,49 +14,52 @@ datasource db {
 // Enum Role removed for SQLite compatibility
 
 model User {
-  id          String    @id @default(uuid())
-  userlogin   String    @unique // Support login by 'Torpong.T'
-  email       String    @unique
-  password    String
-  name        String?
-  role        String    @default("DEV")
-  image       String?   // Stored as relative path e.g. "/imgs/profile_123.jpg"
-  
+  id                 String  @id @default(uuid())
+  userlogin          String  @unique // Support login by 'Torpong.T'
+  email              String  @unique
+  password           String
+  name               String?
+  role               String  @default("DEV")
+  image              String? // Stored as relative path e.g. "/imgs/profile_123.jpg"
+  sessionVersion     Int     @default(0)
+  mustChangePassword Boolean @default(true)
+
   // Relations
   assignments ProjectAssignment[]
   timesheets  TimesheetEntry[]
   auditLogs   AuditLog[]
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  status      String   @default("Enable")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  status    String   @default("Enable")
 
   // Indexes for faster queries
-  @@index([role])               // Filter users by role (Team Overview)
-  @@index([status])             // Filter enabled/disabled users
-  @@index([name])               // Search by name
-  @@index([createdAt])          // Sort by creation date
+  @@index([role]) // Filter users by role (Team Overview)
+  @@index([status]) // Filter enabled/disabled users
+  @@index([name]) // Search by name
+  @@index([createdAt]) // Sort by creation date
+  @@index([mustChangePassword]) // Find accounts pending a mandatory password change
 }
 
 model Project {
-  id          String   @id @default(cuid())
-  code        String   @unique // e.g. STW02S6
-  name        String
-  startDate   DateTime
-  endDate     DateTime
-  budget      Float
-  
+  id        String   @id @default(cuid())
+  code      String   @unique // e.g. STW02S6
+  name      String
+  startDate DateTime
+  endDate   DateTime
+  budget    Float
+
   // Relations
   assignments ProjectAssignment[]
   timesheets  TimesheetEntry[]
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // Indexes for faster queries
-  @@index([name])               // Search by project name
-  @@index([startDate])          // Filter by date range
-  @@index([endDate])            // Filter by date range
+  @@index([name]) // Search by project name
+  @@index([startDate]) // Filter by date range
+  @@index([endDate]) // Filter by date range
   @@index([startDate, endDate]) // Date range queries
 }
 
@@ -64,70 +67,69 @@ model ProjectAssignment {
   id        String @id @default(cuid())
   userId    String
   projectId String
-  
-  user      User    @relation(fields: [userId], references: [id])
-  project   Project @relation(fields: [projectId], references: [id])
+
+  user    User    @relation(fields: [userId], references: [id])
+  project Project @relation(fields: [projectId], references: [id])
 
   createdAt DateTime @default(now())
 
   @@unique([userId, projectId])
-  
   // Indexes for faster lookups
-  @@index([userId])             // Get all projects for a user
-  @@index([projectId])          // Get all users for a project
+  @@index([userId]) // Get all projects for a user
+  @@index([projectId]) // Get all users for a project
 }
 
 model TimesheetEntry {
   id          String   @id @default(cuid())
   date        DateTime
-  hours       Float    // Validated 0.5 to 7.0 step 0.5
+  hours       Float // Validated 0.5 to 7.0 step 0.5
   description String
-  
-  userId      String
-  projectId   String
-  user        User     @relation(fields: [userId], references: [id])
-  project     Project  @relation(fields: [projectId], references: [id])
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt // For lock logic check
+  userId    String
+  projectId String
+  user      User    @relation(fields: [userId], references: [id])
+  project   Project @relation(fields: [projectId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt // For lock logic check
 
   // Indexes for faster queries
-  @@index([userId, date])       // Get entries for a user on a date (existing)
-  @@index([userId])             // Get all entries for a user
-  @@index([projectId])          // Get all entries for a project
-  @@index([date])               // Get all entries on a date
-  @@index([userId, projectId])  // Get entries for user+project combination
+  @@index([userId, date]) // Get entries for a user on a date (existing)
+  @@index([userId]) // Get all entries for a user
+  @@index([projectId]) // Get all entries for a project
+  @@index([date]) // Get all entries on a date
+  @@index([userId, projectId]) // Get entries for user+project combination
   @@index([userId, date, projectId]) // Complex queries for reports
-  @@index([createdAt])          // Sort by creation date
+  @@index([createdAt]) // Sort by creation date
 }
 
 model Holiday {
-  id    String   @id @default(cuid())
-  date  DateTime @unique
-  name  String
-  year  Int
-  
+  id   String   @id @default(cuid())
+  date DateTime @unique
+  name String
+  year Int
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   // Indexes for faster queries
-  @@index([year])               // Get holidays for a year
-  @@index([year, date])         // Get holidays in year sorted by date
+  @@index([year]) // Get holidays for a year
+  @@index([year, date]) // Get holidays in year sorted by date
 }
 
 model AuditLog {
-  id        String   @id @default(cuid())
-  action    String
-  details   String?
-  userId    String
-  
-  user      User     @relation(fields: [userId], references: [id])
-  
+  id      String  @id @default(cuid())
+  action  String
+  details String?
+  userId  String
+
+  user User @relation(fields: [userId], references: [id])
+
   timestamp DateTime @default(now())
 
   // Indexes for faster queries
-  @@index([userId])             // Get logs for a user
-  @@index([action])             // Filter by action type
-  @@index([timestamp])          // Sort by timestamp (recent logs)
-  @@index([userId, timestamp])  // Get user logs sorted by time
+  @@index([userId]) // Get logs for a user
+  @@index([action]) // Filter by action type
+  @@index([timestamp]) // Sort by timestamp (recent logs)
+  @@index([userId, timestamp]) // Get user logs sorted by time
 }

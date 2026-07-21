@@ -49,3 +49,9 @@ yarn-error.log*
 next-env.d.ts
 
 /src/generated/prisma
+
+# Runtime uploads and production backup artifacts
+/storage/
+/backups/
+/public/img/
+/public/imgs/

@@ -10,7 +10,7 @@ test.describe('Calendar Holiday Logic', () => {
 
         // 2. Go to Calendar
         await expect(page.locator('nav')).toBeVisible();
-        await page.click('a[href="/dashboard/calendar"]');
+        await page.getByRole('link', { name: /calendar/i }).click();
 
         // 3. Verify page loaded
         await expect(page.locator('text=Time Tracker')).toBeVisible();

@@ -7,7 +7,7 @@ async function loginAsTorpong(page: import('@playwright/test').Page) {
     await page.goto('/timesheet/login/');
     await page.waitForLoadState('networkidle');
     await page.fill('#userlogin', 'Torpong.T');
-    await page.fill('#password', 'password123');
+    await page.fill('#password', process.env.E2E_ADMIN_PASSWORD ?? '');
     await page.click('button[type="submit"]');
     await expect(page).toHaveURL(/.*timesheet\/dashboard/, { timeout: 15000 });
 }

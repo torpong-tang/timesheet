@@ -11,8 +11,17 @@ const Role = {
 }
 
 async function main() {
+    if (process.env.NODE_ENV === 'production' || process.env.ALLOW_DEMO_SEED !== 'true') {
+        throw new Error('Demo seed is disabled. Set ALLOW_DEMO_SEED=true outside production.')
+    }
+
+    const demoPassword = process.env.DEMO_PASSWORD
+    if (!demoPassword || demoPassword.length < 12) {
+        throw new Error('DEMO_PASSWORD with at least 12 characters is required')
+    }
+
     console.log('Start seeding...')
-    const password = await bcrypt.hash('password123', 10)
+    const password = await bcrypt.hash(demoPassword, 12)
 
     // 1. Existing Admin
     const admin = await prisma.user.upsert({
@@ -24,6 +33,7 @@ async function main() {
             name: 'Torpong T',
             password,
             role: Role.ADMIN,
+            mustChangePassword: false,
         },
     })
     console.log('Seeded Admin: Torpong.T')
@@ -42,6 +52,7 @@ async function main() {
                     name: `${role} User ${i}`,
                     password,
                     role,
+                    mustChangePassword: false,
                 }
             })
             userIds.push(user.id)

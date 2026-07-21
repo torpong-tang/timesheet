@@ -29,6 +29,7 @@ vi.mock('@/lib/prisma', () => ({
         },
         projectAssignment: {
             findMany: vi.fn(),
+            findFirst: vi.fn().mockResolvedValue({ id: 'assignment-id' }),
             create: vi.fn(),
             delete: vi.fn(),
         },
@@ -51,6 +52,7 @@ vi.mock('@/lib/prisma', () => ({
             create: vi.fn(),
         },
         $transaction: vi.fn(),
+        $queryRaw: vi.fn(),
     },
 }))
 

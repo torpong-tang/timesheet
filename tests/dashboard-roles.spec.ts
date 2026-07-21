@@ -30,11 +30,11 @@ test.describe('Dashboard Role Access', () => {
         page.on('console', msg => console.log(`BROWSER LOG: ${msg.text()}`));
 
         // Login as GM
-        await page.goto('/login');
+        await page.goto('/timesheet/login');
         await page.fill('#userlogin', gmUser.userlogin);
-        await page.fill('#password', 'password123');
+        await page.fill('#password', process.env.E2E_ADMIN_PASSWORD ?? '');
         await page.click('button[type="submit"]');
-        await page.waitForURL('/dashboard');
+        await page.waitForURL(/\/timesheet\/dashboard\/?$/);
         await page.waitForTimeout(1000);
 
         await expect(page.getByText('Team Overview')).toBeVisible({ timeout: 10000 });
@@ -47,11 +47,11 @@ test.describe('Dashboard Role Access', () => {
         page.on('console', msg => console.log(`BROWSER LOG: ${msg.text()}`));
 
         // Login as PM
-        await page.goto('/login');
+        await page.goto('/timesheet/login');
         await page.fill('#userlogin', pmUser.userlogin);
-        await page.fill('#password', 'password123');
+        await page.fill('#password', process.env.E2E_ADMIN_PASSWORD ?? '');
         await page.click('button[type="submit"]');
-        await page.waitForURL('/dashboard');
+        await page.waitForURL(/\/timesheet\/dashboard\/?$/);
         await page.waitForTimeout(1000);
 
         await expect(page.getByText('Team Overview')).toBeVisible({ timeout: 10000 });
@@ -63,11 +63,11 @@ test.describe('Dashboard Role Access', () => {
         page.on('console', msg => console.log(`BROWSER LOG: ${msg.text()}`));
 
         // Login as Dev
-        await page.goto('/login');
+        await page.goto('/timesheet/login');
         await page.fill('#userlogin', devUser.userlogin);
-        await page.fill('#password', 'password123');
+        await page.fill('#password', process.env.E2E_ADMIN_PASSWORD ?? '');
         await page.click('button[type="submit"]');
-        await page.waitForURL('/dashboard');
+        await page.waitForURL(/\/timesheet\/dashboard\/?$/);
         await page.waitForTimeout(1000);
 
         // Check absence

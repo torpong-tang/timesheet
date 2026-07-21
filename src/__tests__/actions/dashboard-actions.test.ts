@@ -202,12 +202,10 @@ describe('Dashboard Actions', () => {
     })
 
     describe('getFilters', () => {
-        it('should return empty filters if not authenticated', async () => {
+        it('should reject filters if not authenticated', async () => {
             mockGetServerSession.mockResolvedValue(null)
 
-            const result = await getFilters()
-
-            expect(result).toEqual({ users: [], projects: [] })
+            await expect(getFilters()).rejects.toThrow('Unauthorized')
         })
 
         it('should return empty filters for DEV role', async () => {

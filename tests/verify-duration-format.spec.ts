@@ -2,9 +2,9 @@ import { test, expect } from '@playwright/test';
 
 test('Verify Duration Format (Hh Dd)', async ({ page }) => {
     // 1. Dashboard Check
-    await page.goto('/login');
+    await page.goto('/timesheet/login');
     await page.fill('#userlogin', 'GM_1_9328');
-    await page.fill('#password', 'password123');
+    await page.fill('#password', process.env.E2E_ADMIN_PASSWORD ?? '');
     await page.click('button[type="submit"]');
 
     // Check Total Hours Card on Dashboard
@@ -22,10 +22,10 @@ test('Verify Duration Format (Hh Dd)', async ({ page }) => {
     console.log('Dashboard Duration:', dashboardText);
 
     // 2. Reports Page Check
-    await page.goto('/dashboard/reports');
+    await page.goto('/timesheet/dashboard/reports');
     await page.fill('input[type="month"]', '2026-03');
     await page.click('button:has-text("Load Data")');
-    await expect(page.locator('text=Found')).toBeVisible();
+    await expect(page.getByText(/^Found \d+ records$/)).toBeVisible();
 
     // Daily View Check (Last column)
     const dailyRow = page.locator('tbody tr').first();

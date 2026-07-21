@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useMemo } from "react"
+import { useState, useEffect } from "react"
 import { getHolidays, upsertHoliday, deleteHoliday } from "@/app/admin-actions"
 import { Holiday } from "@prisma/client"
 import { Pagination } from "@/components/Pagination"
@@ -30,37 +30,30 @@ import {
     SelectValue,
 } from "@/components/ui/select"
 import { toast } from "sonner"
-import { Loader2, Plus, Pencil, Trash2, Search, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react"
+import { Loader2, Plus, Pencil, Trash2, Search, Save, X } from "lucide-react"
 import { format } from "date-fns"
+import { HighlightText } from "@/components/data-table/highlight-text"
+import { SortIndicator } from "@/components/data-table/sort-indicator"
+import { useClientTable } from "@/hooks/use-client-table"
+import { ActionConfirmDialog } from "@/components/ui/action-confirm-dialog"
+import { IconTooltip } from "@/components/ui/icon-tooltip"
 
-// Helper to highlight text
-const HighlightText = ({ text, highlight }: { text: string, highlight: string }) => {
-    if (!highlight.trim()) return <>{text}</>
-    const parts = text.split(new RegExp(`(${highlight})`, 'gi'))
-    return (
-        <span>
-            {parts.map((part, i) =>
-                part.toLowerCase() === highlight.toLowerCase() ? (
-                    <span key={i} className="bg-yellow-200 text-slate-900 font-bold px-0.5 rounded-sm">{part}</span>
-                ) : (
-                    part
-                )
-            )}
-        </span>
-    )
-}
+const matchesHolidaySearch = (holiday: Holiday, query: string) =>
+    holiday.name.toLocaleLowerCase().includes(query) ||
+    holiday.year.toString().includes(query)
+
+const getHolidaySortValue = (holiday: Holiday, key: keyof Holiday) => holiday[key]
+
+type PendingAction =
+    | { type: "save" }
+    | { type: "delete"; id: string; label: string }
 
 export default function HolidaysPage() {
     const [holidays, setHolidays] = useState<Holiday[]>([])
     const [loading, setLoading] = useState(true)
     const [isDialogOpen, setIsDialogOpen] = useState(false)
     const [saving, setSaving] = useState(false)
-
-    // Data Grid State
-    const [searchQuery, setSearchQuery] = useState("")
-    const [sortConfig, setSortConfig] = useState<{ key: keyof Holiday, direction: 'asc' | 'desc' } | null>(null)
-    const [page, setPage] = useState(1)
-    const [pageSize, setPageSize] = useState(10)
+    const [pendingAction, setPendingAction] = useState<PendingAction | null>(null)
 
     // Form State
     const [editingId, setEditingId] = useState<string | null>(null)
@@ -85,51 +78,23 @@ export default function HolidaysPage() {
         loadHolidays()
     }, [])
 
-    // --- Data Processing ---
-    const processedHolidays = useMemo(() => {
-        let data = [...holidays]
-
-        // 1. Search
-        if (searchQuery.trim()) {
-            const lowerQ = searchQuery.toLowerCase()
-            data = data.filter(h =>
-                h.name.toLowerCase().includes(lowerQ) ||
-                h.year.toString().includes(lowerQ)
-            )
-        }
-
-        // 2. Sort
-        if (sortConfig) {
-            data.sort((a, b) => {
-                const aVal = (a[sortConfig.key] || "").toString().toLowerCase()
-                const bVal = (b[sortConfig.key] || "").toString().toLowerCase()
-
-                if (aVal < bVal) return sortConfig.direction === 'asc' ? -1 : 1
-                if (aVal > bVal) return sortConfig.direction === 'asc' ? 1 : -1
-                return 0
-            })
-        }
-
-        return data
-    }, [holidays, searchQuery, sortConfig])
-
-    // Pagination
-    const totalPages = Math.ceil(processedHolidays.length / pageSize)
-    const paginatedHolidays = processedHolidays.slice((page - 1) * pageSize, page * pageSize)
-
-    const handleSort = (key: keyof Holiday) => {
-        setSortConfig(current => ({
-            key,
-            direction: current?.key === key && current.direction === 'asc' ? 'desc' : 'asc'
-        }))
-    }
-
-    const SortIcon = ({ column }: { column: keyof Holiday }) => {
-        if (sortConfig?.key !== column) return <ArrowUpDown className="ml-2 h-3 w-3 inline text-slate-600" />
-        return sortConfig.direction === 'asc' ?
-            <ArrowUp className="ml-2 h-3 w-3 inline text-primary" /> :
-            <ArrowDown className="ml-2 h-3 w-3 inline text-primary" />
-    }
+    const {
+        page,
+        pageSize,
+        paginatedItems: paginatedHolidays,
+        processedItems: processedHolidays,
+        searchQuery,
+        setPage,
+        setPageSize,
+        setSearchQuery,
+        sortConfig,
+        toggleSort: handleSort,
+        totalPages,
+    } = useClientTable<Holiday, keyof Holiday>({
+        items: holidays,
+        matchesSearch: matchesHolidaySearch,
+        getSortValue: getHolidaySortValue,
+    })
 
 
     // --- Actions ---
@@ -169,7 +134,7 @@ export default function HolidaysPage() {
             })
             toast.success(editingId ? "Holiday updated" : "Holiday created")
             setIsDialogOpen(false)
-            loadHolidays()
+            await loadHolidays()
         } catch (err: any) {
             toast.error(err.message || "Operation failed")
         } finally {
@@ -178,14 +143,35 @@ export default function HolidaysPage() {
     }
 
     const handleDelete = async (id: string) => {
-        if (!confirm("Are you sure? This action cannot be undone.")) return
+        setSaving(true)
         try {
             await deleteHoliday(id)
             toast.success("Holiday deleted")
-            loadHolidays()
+            await loadHolidays()
         } catch (err) {
             toast.error("Failed to delete holiday")
+        } finally {
+            setSaving(false)
+            setPendingAction(null)
         }
+    }
+
+    const requestSave = () => {
+        if (!formData.date || !formData.name.trim()) {
+            toast.error("Name and Date are required")
+            return
+        }
+        setPendingAction({ type: "save" })
+    }
+
+    const handleConfirmedAction = async () => {
+        if (!pendingAction) return
+        if (pendingAction.type === "save") {
+            await handleSave()
+            setPendingAction(null)
+            return
+        }
+        await handleDelete(pendingAction.id)
     }
 
     return (
@@ -228,13 +214,13 @@ export default function HolidaysPage() {
                         <TableHeader className="bg-slate-100/50">
                             <TableRow className="hover:bg-transparent border-slate-200">
                                 <TableHead className="font-bold text-slate-900 cursor-pointer hover:text-primary transition-colors" onClick={() => handleSort('date')}>
-                                    Holiday Date <SortIcon column="date" />
+                                    Holiday Date <SortIndicator column="date" sortConfig={sortConfig} />
                                 </TableHead>
                                 <TableHead className="font-bold text-slate-900 cursor-pointer hover:text-primary transition-colors" onClick={() => handleSort('name')}>
-                                    Description <SortIcon column="name" />
+                                    Description <SortIndicator column="name" sortConfig={sortConfig} />
                                 </TableHead>
                                 <TableHead className="font-bold text-slate-900 cursor-pointer hover:text-primary transition-colors" onClick={() => handleSort('year')}>
-                                    Year <SortIcon column="year" />
+                                    Year <SortIndicator column="year" sortConfig={sortConfig} />
                                 </TableHead>
                                 <TableHead className="text-right font-bold text-slate-900 px-6">Actions</TableHead>
                             </TableRow>
@@ -268,12 +254,16 @@ export default function HolidaysPage() {
                                     </TableCell>
                                     <TableCell className="text-right px-6">
                                         <div className="flex justify-end gap-2">
-                                            <Button variant="ghost" size="icon" className="h-9 w-9 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-full" onClick={() => handleEdit(holiday)}>
-                                                <Pencil className="h-4 w-4" />
-                                            </Button>
-                                            <Button variant="ghost" size="icon" className="h-9 w-9 text-red-500 hover:text-red-600 hover:bg-red-50 rounded-full" onClick={() => handleDelete(holiday.id)}>
-                                                <Trash2 className="h-4 w-4" />
-                                            </Button>
+                                            <IconTooltip label="Edit holiday">
+                                                <Button variant="ghost" size="icon" aria-label={`Edit ${holiday.name}`} className="h-9 w-9 rounded-lg text-blue-600 hover:bg-blue-50 hover:text-blue-700" onClick={() => handleEdit(holiday)}>
+                                                    <Pencil className="h-4 w-4" />
+                                                </Button>
+                                            </IconTooltip>
+                                            <IconTooltip label="Delete holiday">
+                                                <Button variant="ghost" size="icon" aria-label={`Delete ${holiday.name}`} className="h-9 w-9 rounded-lg text-red-500 hover:bg-red-50 hover:text-red-600" onClick={() => setPendingAction({ type: "delete", id: holiday.id, label: holiday.name })}>
+                                                    <Trash2 className="h-4 w-4" />
+                                                </Button>
+                                            </IconTooltip>
                                         </div>
                                     </TableCell>
                                 </TableRow>
@@ -358,15 +348,29 @@ export default function HolidaysPage() {
                     </div>
                     <DialogFooter className="p-6 bg-slate-100 border-t gap-2 sm:gap-0">
                         <Button variant="outline" onClick={() => setIsDialogOpen(false)} className="border-slate-300 font-bold">
+                            <X className="mr-2 h-4 w-4" />
                             Cancel
                         </Button>
-                        <Button onClick={handleSave} disabled={saving} className="bg-primary hover:bg-orange-600 text-white font-bold ml-2">
-                            {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        <Button onClick={requestSave} disabled={saving} className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold ml-2">
+                            {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
                             Save Holiday
                         </Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
+
+            <ActionConfirmDialog
+                open={pendingAction !== null}
+                action={pendingAction?.type === "delete" ? "delete" : editingId ? "update" : "create"}
+                title={pendingAction?.type === "delete" ? "Delete holiday?" : editingId ? "Update holiday?" : "Create holiday?"}
+                description={pendingAction?.type === "delete"
+                    ? `Holiday ${pendingAction.label} will be permanently deleted.`
+                    : `Confirm ${editingId ? "updating" : "creating"} holiday ${formData.name}.`}
+                confirmLabel={pendingAction?.type === "delete" ? "Delete holiday" : editingId ? "Update holiday" : "Create holiday"}
+                loading={saving}
+                onConfirm={handleConfirmedAction}
+                onOpenChange={(open) => { if (!open && !saving) setPendingAction(null) }}
+            />
 
         </div>
     )

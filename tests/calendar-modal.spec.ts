@@ -46,15 +46,15 @@ test.describe('Calendar Modal Interaction', () => {
 
     test('Should be able to click and select a project in Daily Log modal', async ({ page }) => {
         // 1. Login
-        await page.goto('/login');
+        await page.goto('/timesheet/login');
         await page.waitForLoadState('networkidle');
         await page.fill('#userlogin', devUser.userlogin);
-        await page.fill('#password', 'password123');
+        await page.fill('#password', process.env.E2E_ADMIN_PASSWORD ?? '');
         await page.click('button[type="submit"]');
         await expect(page).toHaveURL(/.*dashboard/, { timeout: 15000 });
 
         // 2. Go to Calendar
-        await page.goto('/dashboard/calendar');
+        await page.goto('/timesheet/dashboard/calendar');
 
         // 3. Open Modal (Click on a day button - assuming current month has days)
         // We'll click on the "15th" or similar to avoid edge cases, or just the first available day button
@@ -119,6 +119,6 @@ test.describe('Calendar Modal Interaction', () => {
         await expect(triggerButton).toContainText(project.code);
 
         // 8. Close Modal without saving
-        await page.getByRole('button', { name: 'Close' }).click();
+        await page.getByRole('button', { name: 'Close' }).first().click();
     });
 });

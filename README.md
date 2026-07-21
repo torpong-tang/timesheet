@@ -1,36 +1,60 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Timesheet
 
-## Getting Started
+Internal project timesheet application built with Next.js 16, NextAuth, Prisma, SQLite and shadcn/ui.
 
-First, run the development server:
+## Features
+
+- Role-based access for `ADMIN`, `GM`, `PM` and `DEV`
+- Project assignments enforced by server actions
+- Daily and recurring time entry with monthly lock and seven-hour daily limit
+- Team dashboards and Excel reports scoped by role and project
+- User, project, holiday, assignment and audit administration
+- Persistent profile-image storage with authenticated delivery
+
+## Local Development
 
 ```bash
+cp .env.production.example .env
+# Change DATABASE_URL to file:./dev.db and set a local NEXTAUTH_SECRET.
+npm ci
+npx prisma generate
+npx prisma migrate deploy
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open `http://localhost:3001/timesheet/login/`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Demo data is opt-in and must never be used against production:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+ALLOW_DEMO_SEED=true DEMO_PASSWORD='<strong-local-password>' npx prisma db seed
+```
 
-## Learn More
+## Quality Checks
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+npm run lint
+npm test
+npm run test:coverage
+npm run build
+npm run security:audit
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Playwright tests mutate data and must use an isolated test database:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+read -rsp "E2E admin password: " E2E_ADMIN_PASSWORD && echo
+export E2E_ADMIN_PASSWORD
+NEXTAUTH_URL=http://localhost:3001/timesheet/api/auth \
+TEST_BASE_URL=http://localhost:3001/timesheet \
+npm run test:e2e
+unset E2E_ADMIN_PASSWORD
+```
 
-## Deploy on Vercel
+Never place the E2E password in source code, `.env`, command history, or a committed Playwright artifact.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Production
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Do not run the demo seed against production. Runtime secrets, SQLite data, profile images and backups must remain outside the Git checkout.
+
+See [DEPLOYMENT.md](./DEPLOYMENT.md) for the deployment, backup, restore-drill and rollback runbook.

@@ -3,13 +3,16 @@
 import { useEffect, useState } from "react"
 import { useSession } from "next-auth/react"
 import { getDashboardStats, DashboardStats } from "@/app/dashboard-actions"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import { Loader2, TrendingUp, TrendingDown, Clock, Briefcase, Calendar, Activity } from "lucide-react"
+import { Card, CardAction, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { TrendingUp, TrendingDown, Clock, Briefcase, Calendar, Activity } from "lucide-react"
 import { format } from "date-fns"
 import { cn, formatDuration } from "@/lib/utils"
-import { LanguageSwitcher } from "@/components/language-switcher"
 import { useLanguage } from "@/components/providers/language-provider"
 import { TeamView } from "@/components/dashboard/team-view"
+import { Badge } from "@/components/ui/badge"
+import { Progress } from "@/components/ui/progress"
+import { Separator } from "@/components/ui/separator"
+import { SkeletonDashboard } from "@/components/ui/skeleton"
 
 export default function DashboardPage() {
     const { data: session } = useSession()
@@ -33,8 +36,12 @@ export default function DashboardPage() {
 
     if (loading) {
         return (
-            <div className="flex h-[50vh] w-full items-center justify-center">
-                <Loader2 className="h-10 w-10 animate-spin text-primary" />
+            <div className="space-y-6 pb-10" aria-label="Loading dashboard">
+                <div className="space-y-3">
+                    <div className="h-10 w-72 animate-pulse rounded-md bg-stone-700/80" />
+                    <div className="h-5 w-96 max-w-full animate-pulse rounded-md bg-stone-800" />
+                </div>
+                <SkeletonDashboard />
             </div>
         )
     }
@@ -62,41 +69,40 @@ export default function DashboardPage() {
                         {isManager ? t('dash.desc.manager') : t('dash.desc.user')}
                     </p>
                 </div>
-                <LanguageSwitcher />
             </div>
 
             {/* Key Metrics Grid */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {/* Total Hours Card */}
-                <Card className="bg-stone-800 border-stone-700 shadow-xl rounded-3xl overflow-hidden relative">
-                    <div className="absolute top-0 right-0 p-4 opacity-10">
-                        <Clock className="w-32 h-32 text-primary" />
-                    </div>
+                <Card className="group overflow-hidden rounded-lg border-stone-700 bg-stone-800 shadow-lg transition-colors hover:border-amber-600/60">
                     <CardHeader className="pb-2">
                         <CardTitle className="text-sm font-black text-stone-400 uppercase tracking-widest">
                             {t('dash.hours.user')}
                         </CardTitle>
+                        <CardAction className="rounded-lg border border-amber-500/20 bg-amber-500/10 p-2.5 text-amber-400">
+                            <Clock className="h-5 w-5" />
+                        </CardAction>
                     </CardHeader>
                     <CardContent>
                         <div className="text-4xl font-black text-stone-100 tracking-tight mb-2">
                             {formatDuration(stats.totalHoursMonth)}
                         </div>
-                        <div className={cn("flex items-center text-sm font-bold gap-1", growth >= 0 ? "text-green-400" : "text-red-400")}>
+                        <Badge variant="outline" className={cn("gap-1 border-stone-600", growth >= 0 ? "text-emerald-400" : "text-red-400")}>
                             {growth >= 0 ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
                             {Math.abs(Number(growthPercent))}% {growth >= 0 ? t('dash.growth.up') : t('dash.growth.down')}
-                        </div>
+                        </Badge>
                     </CardContent>
                 </Card>
 
                 {/* Active Projects Card */}
-                <Card className="bg-stone-800 border-stone-700 shadow-xl rounded-3xl overflow-hidden relative">
-                    <div className="absolute top-0 right-0 p-4 opacity-10">
-                        <Briefcase className="w-32 h-32 text-blue-400" />
-                    </div>
+                <Card className="group overflow-hidden rounded-lg border-stone-700 bg-stone-800 shadow-lg transition-colors hover:border-sky-600/60">
                     <CardHeader className="pb-2">
                         <CardTitle className="text-sm font-black text-stone-400 uppercase tracking-widest">
                             {t('dash.projects.title')}
                         </CardTitle>
+                        <CardAction className="rounded-lg border border-sky-500/20 bg-sky-500/10 p-2.5 text-sky-400">
+                            <Briefcase className="h-5 w-5" />
+                        </CardAction>
                     </CardHeader>
                     <CardContent>
                         <div className="text-5xl font-black text-stone-100 tracking-tight mb-2">
@@ -109,19 +115,14 @@ export default function DashboardPage() {
                 </Card>
 
                 {/* Monthly Progress / Completion Card */}
-                <Card className={cn(
-                    "text-white border-none shadow-xl rounded-3xl overflow-hidden relative transition-all duration-500",
-                    stats.totalHoursMonth >= stats.workableHoursMonth
-                        ? "bg-gradient-to-br from-emerald-500 to-green-600 shadow-green-200"
-                        : "bg-gradient-to-br from-primary to-amber-600 shadow-primary/30"
-                )}>
-                    <div className="absolute top-0 right-0 p-4 opacity-20">
-                        <Activity className="w-32 h-32 text-white" />
-                    </div>
+                <Card className="overflow-hidden rounded-lg border-amber-600/40 bg-stone-800 text-white shadow-lg transition-colors hover:border-amber-500">
                     <CardHeader className="pb-2">
                         <CardTitle className="text-sm font-black text-white/80 uppercase tracking-widest">
                             {t('dash.capacity.title')}
                         </CardTitle>
+                        <CardAction className="rounded-lg border border-amber-500/30 bg-amber-500/15 p-2.5 text-amber-300">
+                            <Activity className="h-5 w-5" />
+                        </CardAction>
                     </CardHeader>
                     <CardContent>
                         <div className="flex items-baseline gap-2 mb-2">
@@ -133,12 +134,11 @@ export default function DashboardPage() {
                             </span>
                         </div>
 
-                        <div className="w-full bg-black/20 rounded-full h-3 mt-2 mb-3">
-                            <div
-                                className="bg-white rounded-full h-3 transition-all duration-1000"
-                                style={{ width: `${Math.min((stats.totalHoursMonth / stats.workableHoursMonth) * 100, 100)}%` }}
-                            />
-                        </div>
+                        <Progress
+                            value={Math.min((stats.totalHoursMonth / stats.workableHoursMonth) * 100, 100)}
+                            className="my-3 bg-stone-700"
+                            indicatorClassName={stats.totalHoursMonth >= stats.workableHoursMonth ? "bg-emerald-500" : "bg-amber-500"}
+                        />
 
                         <p className="text-white font-bold text-sm flex justify-between">
                             <span>{((stats.totalHoursMonth / stats.workableHoursMonth) * 100).toFixed(0)}% {t('dash.complete')}</span>
@@ -152,7 +152,7 @@ export default function DashboardPage() {
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 {/* Top Projects List */}
-                <Card className="bg-stone-800 border-stone-700 shadow-xl rounded-3xl overflow-hidden">
+                <Card className="overflow-hidden rounded-lg border-stone-700 bg-stone-800 shadow-lg">
                     <CardHeader className="bg-stone-900/50 border-b border-stone-700">
                         <CardTitle className="text-lg font-black text-stone-100 flex items-center gap-2">
                             <Briefcase className="w-5 h-5 text-primary" />
@@ -163,12 +163,12 @@ export default function DashboardPage() {
                     <CardContent className="p-0">
                         <div className="flex flex-col">
                             {stats.topProjects.map((proj, i) => (
-                                <div key={i} className="flex items-center justify-between p-6 border-b border-stone-700 last:border-none hover:bg-stone-700/50 transition-colors">
+                                <div key={i} className="flex items-center justify-between p-5 border-b border-stone-700 last:border-none hover:bg-stone-700/50 transition-colors">
                                     <div className="flex flex-col gap-1">
                                         <span className="font-bold text-stone-100">{proj.name}</span>
-                                        <span className="text-[10px] font-black uppercase text-blue-300 bg-blue-900/50 px-2 py-0.5 rounded w-fit">
+                                        <Badge variant="outline" className="border-sky-800 bg-sky-950/50 text-sky-300">
                                             {proj.code}
-                                        </span>
+                                        </Badge>
                                     </div>
                                     <div className="flex items-center gap-4">
                                         <div className="text-right">
@@ -186,7 +186,7 @@ export default function DashboardPage() {
                 </Card>
 
                 {/* Recent Activity Log */}
-                <Card className="bg-stone-800 border-stone-700 shadow-xl rounded-3xl overflow-hidden">
+                <Card className="overflow-hidden rounded-lg border-stone-700 bg-stone-800 shadow-lg">
                     <CardHeader className="bg-stone-900/50 border-b border-stone-700">
                         <CardTitle className="text-lg font-black text-stone-100 flex items-center gap-2">
                             <Calendar className="w-5 h-5 text-primary" />
@@ -197,10 +197,10 @@ export default function DashboardPage() {
                     <CardContent className="p-0">
                         <div className="flex flex-col">
                             {stats.recentActivity.map((log) => (
-                                <div key={log.id} className="flex items-start gap-4 p-6 border-b border-stone-700 last:border-none hover:bg-stone-700/50 transition-colors">
+                                <div key={log.id} className="flex items-start gap-4 p-5 border-b border-stone-700 last:border-none hover:bg-stone-700/50 transition-colors">
                                     <div className="min-w-[4rem] text-center">
                                         <span className="block text-xs font-black text-stone-400 uppercase tracking-wider">{format(new Date(log.date), "MMM")}</span>
-                                        <span className="block text-xl font-black text-stone-100 leading-none">{format(new Date(log.date), "dd/MM/yyyy")}</span>
+                                        <span className="block text-sm font-black text-stone-100 leading-none">{format(new Date(log.date), "dd/MM/yyyy")}</span>
                                     </div>
                                     <div className="flex-1">
                                         <div className="flex justify-between items-center mb-1">
@@ -225,11 +225,11 @@ export default function DashboardPage() {
             {/* Focus is on hours only now */}
 
             {isManager && (
-                <div className="pt-4 border-t border-stone-700">
-                    <TeamView />
+                    <div className="space-y-6 pt-4">
+                        <Separator className="bg-stone-700" />
+                        <TeamView />
                 </div>
             )}
         </div>
     )
 }
-

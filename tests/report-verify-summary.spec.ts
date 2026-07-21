@@ -3,21 +3,21 @@ import { test, expect } from '@playwright/test';
 test('GM Report: Verify Total Summary and Project Data for Developer', async ({ page }) => {
     // 1. Login as GM
     const GM_USER = 'GM_1_9328';
-    const PASSWORD = 'password123';
+    const PASSWORD = process.env.E2E_ADMIN_PASSWORD ?? '';
 
-    await page.goto('/login');
+    await page.goto('/timesheet/login');
     await page.fill('#userlogin', GM_USER);
     await page.fill('#password', PASSWORD);
     await page.click('button[type="submit"]');
     await expect(page).toHaveURL(/.*dashboard/);
 
     // 2. Navigate to Reports
-    await page.goto('/dashboard/reports');
+    await page.goto('/timesheet/dashboard/reports');
 
     // 3. Select Month (March 2026)
     await page.fill('input[type="month"]', '2026-03');
     await page.click('button:has-text("Load Data")');
-    await expect(page.locator('text=Found')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText(/^Found \d+ records$/)).toBeVisible({ timeout: 10000 });
 
     // 4. Select a specific Developer
     // Open User Dropdown

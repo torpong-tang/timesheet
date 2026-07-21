@@ -25,15 +25,15 @@ test.describe('GM Report Workflow', () => {
 
     test('Month > Developer Selection > Project Filter', async ({ page }) => {
         // 1. Login as GM
-        await page.goto('/login');
+        await page.goto('/timesheet/login');
         await page.waitForLoadState('networkidle');
         await page.fill('#userlogin', gmUser.userlogin);
-        await page.fill('#password', 'password123');
+        await page.fill('#password', process.env.E2E_ADMIN_PASSWORD ?? '');
         await page.click('button[type="submit"]');
         await expect(page).toHaveURL(/.*dashboard/, { timeout: 15000 });
 
         // 2. Navigate to Reports
-        await page.goto('/dashboard/reports');
+        await page.goto('/timesheet/dashboard/reports');
         await expect(page).toHaveURL(/.*reports/);
 
         // 3. Select Month (March 2026 - where seed data exists)
@@ -43,7 +43,7 @@ test.describe('GM Report Workflow', () => {
         await page.click('button:has-text("Load Data")');
 
         // Wait for "Found ... records" or table to appear
-        await expect(page.locator('text=Found')).toBeVisible({ timeout: 10000 });
+        await expect(page.getByText(/^Found \d+ records$/)).toBeVisible({ timeout: 10000 });
 
         // 5. Verify "All Users" default state
         const rows = page.locator('tbody tr');
@@ -66,8 +66,9 @@ test.describe('GM Report Workflow', () => {
 
         // Select a project
         const projectOption = page.locator('div[role="option"]').nth(1);
-        const projectCode = await projectOption.innerText();
-        console.log(`Selecting Project: ${projectCode}`);
+        const projectLabel = await projectOption.innerText();
+        const projectCode = projectLabel.split(' - ')[0].trim();
+        console.log(`Selecting Project: ${projectLabel}`);
         await projectOption.click();
 
         // 8. Verify Data Filtered

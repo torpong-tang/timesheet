@@ -6,11 +6,20 @@ import { authOptions } from "@/lib/auth"
 import { revalidatePath } from "next/cache"
 import { isWeekend, isSameDay, addDays, startOfMonth, differenceInCalendarDays, endOfMonth, format } from "date-fns"
 import { Project } from "@prisma/client"
+import { requireProjectAccess, requireSession } from "@/lib/authorization"
+import {
+    identifierSchema,
+    parseInput,
+    recurringTimesheetInputSchema,
+    timesheetInputSchema,
+    updateTimesheetInputSchema,
+} from "@/lib/server-validation"
+import { logAudit } from "@/lib/audit"
 
 
 export async function getAssignedProjects() {
     const session = await getServerSession(authOptions)
-    if (!session) return []
+    if (!session || session.user.status === "Disable") return []
 
     // If Admin/GM, return all. If PM/Dev, return assigned.
     // Simplifying for prototype: PM sees all for assignment, Dev sees only assigned.
@@ -30,7 +39,7 @@ export async function getAssignedProjects() {
 
 export async function getTimesheetEntries(date: Date) {
     const session = await getServerSession(authOptions)
-    if (!session) return []
+    if (!session || session.user.status === "Disable") return []
 
     // Fetch entries for the logged-in user for the specific month/date context? 
     // Usually we fetch a range. For now let's fetch by exact date match (for daily view) or month range.
@@ -52,6 +61,8 @@ export async function getTimesheetEntries(date: Date) {
 }
 
 export async function getHolidays(year: number) {
+    await requireSession()
+    if (!Number.isInteger(year) || year < 2000 || year > 2200) throw new Error("Invalid year")
     return await prisma.holiday.findMany({
         where: { year }
     })
@@ -65,11 +76,12 @@ export type TimesheetInput = {
 }
 
 export async function logTime(data: TimesheetInput) {
-    const session = await getServerSession(authOptions)
-    if (!session) throw new Error("Unauthorized")
+    const session = await requireSession()
+    const input = parseInput(timesheetInputSchema, data)
+    await requireProjectAccess(session.user.id, session.user.role, input.projectId)
 
     // 1. Lock Validation: Cannot edit/add if > 5 days past month end
-    const entryDate = new Date(data.date)
+    const entryDate = new Date(input.date)
     const today = new Date()
     const monthEndOfEntry = endOfMonth(entryDate)
     const lockDate = addDays(monthEndOfEntry, 5)
@@ -92,28 +104,31 @@ export async function logTime(data: TimesheetInput) {
 
     const totalHours = existingEntries.reduce((sum: number, e: { hours: number }) => sum + e.hours, 0)
 
-    if (totalHours + data.hours > 7) {
-        throw new Error(`Daily limit exceeded. You have already logged ${totalHours}h. Taking this would equal ${totalHours + data.hours}h (Max 7h).`)
+    if (totalHours + input.hours > 7) {
+        throw new Error(`Daily limit exceeded. You have already logged ${totalHours}h. Taking this would equal ${totalHours + input.hours}h (Max 7h).`)
     }
 
     // Create Entry
     await prisma.timesheetEntry.create({
         data: {
             userId: session.user.id,
-            projectId: data.projectId,
-            date: data.date,
-            hours: data.hours,
-            description: data.description
+            projectId: input.projectId,
+            date: input.date,
+            hours: input.hours,
+            description: input.description
         }
     })
+
+    await logAudit("CREATE_TIMESHEET", session.user.id, `Logged ${input.hours}h for project ${input.projectId}`)
 
     revalidatePath("/dashboard/calendar")
     return { success: true }
 }
 
 export async function logRecurringTime(data: { projectId: string, hours: number, description: string, dates: Date[] }) {
-    const session = await getServerSession(authOptions)
-    if (!session) throw new Error("Unauthorized")
+    const session = await requireSession()
+    const input = parseInput(recurringTimesheetInputSchema, data)
+    await requireProjectAccess(session.user.id, session.user.role, input.projectId)
 
     const today = new Date()
 
@@ -123,9 +138,11 @@ export async function logRecurringTime(data: { projectId: string, hours: number,
     // But for simplicity and robustness, we can check day by day or grouped.
 
     // Sort dates to find range
-    if (data.dates.length === 0) return { success: true }
+    if (input.dates.length === 0) return { success: true }
 
-    const sortedDates = [...data.dates].sort((a, b) => a.getTime() - b.getTime())
+    const uniqueDates = Array.from(
+        new Map(input.dates.map((date) => [format(date, "yyyy-MM-dd"), date])).values()
+    )
     // const startRange = startOfDay(sortedDates[0])
     // const endRange = endOfDay(sortedDates[sortedDates.length - 1])
 
@@ -134,7 +151,7 @@ export async function logRecurringTime(data: { projectId: string, hours: number,
     // Let's iterate. For 20-30 days, 20 clean queries is safer than complex in-memory math if not huge scale.
     // Actually, simple loop with Promise.all for validation is fine for <31 items.
 
-    const validations = await Promise.all(data.dates.map(async (date) => {
+    const validations = await Promise.all(uniqueDates.map(async (date) => {
         const d = new Date(date)
 
         // Lock Check
@@ -156,16 +173,16 @@ export async function logRecurringTime(data: { projectId: string, hours: number,
             select: { hours: true }
         })
         const total = existingEntries.reduce((sum, e) => sum + e.hours, 0)
-        if (total + data.hours > 7) {
-            throw new Error(`Daily limit exceeded on ${format(d, 'dd/MM/yyyy')}. Existing: ${total}h, Adding: ${data.hours}h.`)
+        if (total + input.hours > 7) {
+            throw new Error(`Daily limit exceeded on ${format(d, 'dd/MM/yyyy')}. Existing: ${total}h, Adding: ${input.hours}h.`)
         }
 
         return {
             userId: session.user.id,
-            projectId: data.projectId,
+            projectId: input.projectId,
             date: date,
-            hours: data.hours,
-            description: data.description
+            hours: input.hours,
+            description: input.description
         }
     }))
 
@@ -174,15 +191,18 @@ export async function logRecurringTime(data: { projectId: string, hours: number,
         validations.map(entry => prisma.timesheetEntry.create({ data: entry }))
     )
 
+    await logAudit("CREATE_RECURRING_TIMESHEET", session.user.id, `Logged ${validations.length} entries for project ${input.projectId}`)
+
     revalidatePath("/dashboard/calendar")
     return { success: true, count: validations.length }
 }
 
 export async function updateEntry(entryId: string, data: { hours?: number, description?: string }) {
-    const session = await getServerSession(authOptions)
-    if (!session) throw new Error("Unauthorized")
+    const session = await requireSession()
+    const validEntryId = parseInput(identifierSchema, entryId)
+    const input = parseInput(updateTimesheetInputSchema, data)
 
-    const existing = await prisma.timesheetEntry.findUnique({ where: { id: entryId } })
+    const existing = await prisma.timesheetEntry.findUnique({ where: { id: validEntryId } })
     if (!existing) throw new Error("Entry not found")
     if (existing.userId !== session.user.id) throw new Error("Unauthorized")
 
@@ -195,7 +215,7 @@ export async function updateEntry(entryId: string, data: { hours?: number, descr
     }
 
     // 7-Hour Validation (only if hours changed)
-    if (data.hours !== undefined && data.hours !== existing.hours) {
+    if (input.hours !== undefined && input.hours !== existing.hours) {
         // Fetch others for that day
         const others = await prisma.timesheetEntry.findMany({
             where: {
@@ -204,24 +224,26 @@ export async function updateEntry(entryId: string, data: { hours?: number, descr
                     gte: startOfDay(existing.date),
                     lt: endOfDay(existing.date)
                 },
-                id: { not: entryId } // Exclude self
+                id: { not: validEntryId } // Exclude self
             },
             select: { hours: true }
         })
         const totalOthers = others.reduce((sum, e) => sum + e.hours, 0)
 
-        if (totalOthers + data.hours > 7) {
-            throw new Error(`Daily limit exceeded. New Total: ${totalOthers + data.hours}h (Max 7h).`)
+        if (totalOthers + input.hours > 7) {
+            throw new Error(`Daily limit exceeded. New Total: ${totalOthers + input.hours}h (Max 7h).`)
         }
     }
 
     await prisma.timesheetEntry.update({
-        where: { id: entryId },
+        where: { id: validEntryId },
         data: {
-            hours: data.hours,
-            description: data.description
+            hours: input.hours,
+            description: input.description
         }
     })
+
+    await logAudit("UPDATE_TIMESHEET", session.user.id, `Updated timesheet ${validEntryId}`)
 
     revalidatePath("/dashboard/calendar")
     return { success: true }
@@ -232,10 +254,10 @@ function startOfDay(d: Date) { return new Date(new Date(d).setHours(0, 0, 0, 0))
 function endOfDay(d: Date) { return new Date(new Date(d).setHours(23, 59, 59, 999)) }
 
 export async function deleteEntry(entryId: string) {
-    const session = await getServerSession(authOptions)
-    if (!session) throw new Error("Unauthorized")
+    const session = await requireSession()
+    const validEntryId = parseInput(identifierSchema, entryId)
 
-    const entry = await prisma.timesheetEntry.findUnique({ where: { id: entryId } })
+    const entry = await prisma.timesheetEntry.findUnique({ where: { id: validEntryId } })
     if (!entry) throw new Error("Entry not found")
 
     // Lock Validation
@@ -250,7 +272,8 @@ export async function deleteEntry(entryId: string) {
 
     if (entry.userId !== session.user.id) throw new Error("Unauthorized")
 
-    await prisma.timesheetEntry.delete({ where: { id: entryId } })
+    await prisma.timesheetEntry.delete({ where: { id: validEntryId } })
+    await logAudit("DELETE_TIMESHEET", session.user.id, `Deleted timesheet ${validEntryId}`)
     revalidatePath("/dashboard/calendar")
     return { success: true }
 }

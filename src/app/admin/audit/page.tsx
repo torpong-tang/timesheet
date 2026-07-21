@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useMemo } from "react"
+import { useState, useEffect } from "react"
 import { getAuditLogs } from "@/app/admin-actions"
 import {
     Table,
@@ -18,10 +18,12 @@ import {
     SelectValue,
 } from "@/components/ui/select"
 import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
 import { format } from "date-fns"
 import { Pagination } from "@/components/Pagination"
-import { Loader2, ShieldAlert, Search, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react"
+import { Loader2, ShieldAlert, Search } from "lucide-react"
+import { HighlightText } from "@/components/data-table/highlight-text"
+import { SortIndicator } from "@/components/data-table/sort-indicator"
+import { useClientTable } from "@/hooks/use-client-table"
 
 interface AuditLog {
     id: string
@@ -34,32 +36,23 @@ interface AuditLog {
     }
 }
 
-// Helper to highlight text
-const HighlightText = ({ text, highlight }: { text: string, highlight: string }) => {
-    if (!highlight.trim()) return <>{text}</>
-    const parts = text.split(new RegExp(`(${highlight})`, 'gi'))
-    return (
-        <span>
-            {parts.map((part, i) =>
-                part.toLowerCase() === highlight.toLowerCase() ? (
-                    <span key={i} className="bg-yellow-200 text-slate-900 font-bold px-0.5 rounded-sm">{part}</span>
-                ) : (
-                    part
-                )
-            )}
-        </span>
-    )
+type AuditSortKey = "timestamp" | "user" | "action" | "details"
+
+const matchesAuditSearch = (log: AuditLog, query: string) =>
+    log.action.toLocaleLowerCase().includes(query) ||
+    (log.user.name ?? "").toLocaleLowerCase().includes(query) ||
+    log.user.userlogin.toLocaleLowerCase().includes(query) ||
+    (log.details ?? "").toLocaleLowerCase().includes(query)
+
+const getAuditSortValue = (log: AuditLog, key: AuditSortKey) => {
+    if (key === "timestamp") return new Date(log.timestamp)
+    if (key === "user") return log.user.name || log.user.userlogin
+    return log[key]
 }
 
 export default function AuditPage() {
     const [logs, setLogs] = useState<AuditLog[]>([])
     const [loading, setLoading] = useState(true)
-
-    // Data Grid State
-    const [searchQuery, setSearchQuery] = useState("")
-    const [sortConfig, setSortConfig] = useState<{ key: string, direction: 'asc' | 'desc' } | null>(null)
-    const [page, setPage] = useState(1)
-    const [pageSize, setPageSize] = useState(10)
 
     useEffect(() => {
         fetchLogs()
@@ -76,79 +69,23 @@ export default function AuditPage() {
         }
     }
 
-    // --- Data Processing ---
-    const processedLogs = useMemo(() => {
-        let data = [...logs]
-
-        // 1. Search
-        if (searchQuery.trim()) {
-            const lowerQ = searchQuery.toLowerCase()
-            data = data.filter(log =>
-                log.action.toLowerCase().includes(lowerQ) ||
-                (log.user.name ?? "").toLowerCase().includes(lowerQ) ||
-                log.user.userlogin.toLowerCase().includes(lowerQ) ||
-                (log.details ?? "").toLowerCase().includes(lowerQ)
-            )
-        }
-
-        // 2. Sort
-        if (sortConfig) {
-            data.sort((a, b) => {
-                let aVal = ""
-                let bVal = ""
-
-                switch (sortConfig.key) {
-                    case 'timestamp':
-                        aVal = new Date(a.timestamp).getTime().toString()
-                        bVal = new Date(b.timestamp).getTime().toString()
-                        break;
-                    case 'user':
-                        aVal = (a.user.name || a.user.userlogin).toLowerCase()
-                        bVal = (b.user.name || b.user.userlogin).toLowerCase()
-                        break;
-                    case 'action':
-                        aVal = a.action.toLowerCase()
-                        bVal = b.action.toLowerCase()
-                        break;
-                    case 'details':
-                        aVal = (a.details || "").toLowerCase()
-                        bVal = (b.details || "").toLowerCase()
-                        break;
-                }
-
-                if (sortConfig.key === 'timestamp') {
-                    // Numeric sort for timestamp
-                    return sortConfig.direction === 'asc'
-                        ? Number(aVal) - Number(bVal)
-                        : Number(bVal) - Number(aVal)
-                }
-
-                if (aVal < bVal) return sortConfig.direction === 'asc' ? -1 : 1
-                if (aVal > bVal) return sortConfig.direction === 'asc' ? 1 : -1
-                return 0
-            })
-        }
-
-        return data
-    }, [logs, searchQuery, sortConfig])
-
-    // Pagination
-    const totalPages = Math.ceil(processedLogs.length / pageSize)
-    const paginatedLogs = processedLogs.slice((page - 1) * pageSize, page * pageSize)
-
-    const handleSort = (key: string) => {
-        setSortConfig(current => ({
-            key,
-            direction: current?.key === key && current.direction === 'asc' ? 'desc' : 'asc'
-        }))
-    }
-
-    const SortIcon = ({ column }: { column: string }) => {
-        if (sortConfig?.key !== column) return <ArrowUpDown className="ml-2 h-3 w-3 inline text-slate-600" />
-        return sortConfig.direction === 'asc' ?
-            <ArrowUp className="ml-2 h-3 w-3 inline text-primary" /> :
-            <ArrowDown className="ml-2 h-3 w-3 inline text-primary" />
-    }
+    const {
+        page,
+        pageSize,
+        paginatedItems: paginatedLogs,
+        processedItems: processedLogs,
+        searchQuery,
+        setPage,
+        setPageSize,
+        setSearchQuery,
+        sortConfig,
+        toggleSort: handleSort,
+        totalPages,
+    } = useClientTable<AuditLog, AuditSortKey>({
+        items: logs,
+        matchesSearch: matchesAuditSearch,
+        getSortValue: getAuditSortValue,
+    })
 
 
     if (loading) {
@@ -199,16 +136,16 @@ export default function AuditPage() {
                         <TableHeader className="bg-slate-100/50">
                             <TableRow className="hover:bg-transparent border-slate-200">
                                 <TableHead className="font-bold text-slate-900 cursor-pointer hover:text-primary transition-colors" onClick={() => handleSort('timestamp')}>
-                                    Timestamp <SortIcon column="timestamp" />
+                                    Timestamp <SortIndicator column="timestamp" sortConfig={sortConfig} />
                                 </TableHead>
                                 <TableHead className="font-bold text-slate-900 cursor-pointer hover:text-primary transition-colors" onClick={() => handleSort('user')}>
-                                    User <SortIcon column="user" />
+                                    User <SortIndicator column="user" sortConfig={sortConfig} />
                                 </TableHead>
                                 <TableHead className="font-bold text-slate-900 cursor-pointer hover:text-primary transition-colors" onClick={() => handleSort('action')}>
-                                    Action <SortIcon column="action" />
+                                    Action <SortIndicator column="action" sortConfig={sortConfig} />
                                 </TableHead>
                                 <TableHead className="font-bold text-slate-900 cursor-pointer hover:text-primary transition-colors" onClick={() => handleSort('details')}>
-                                    Details <SortIcon column="details" />
+                                    Details <SortIndicator column="details" sortConfig={sortConfig} />
                                 </TableHead>
                             </TableRow>
                         </TableHeader>

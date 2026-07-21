@@ -2,19 +2,19 @@ import { test, expect } from '@playwright/test';
 
 test('GM Report: Toggle Summary View by Project', async ({ page }) => {
     // 1. Login as GM
-    await page.goto('/login');
+    await page.goto('/timesheet/login');
     await page.fill('#userlogin', 'GM_1_9328');
-    await page.fill('#password', 'password123');
+    await page.fill('#password', process.env.E2E_ADMIN_PASSWORD ?? '');
     await page.click('button[type="submit"]');
     await expect(page).toHaveURL(/.*dashboard/);
 
     // 2. Navigate to Reports
-    await page.goto('/dashboard/reports');
+    await page.goto('/timesheet/dashboard/reports');
 
     // 3. Load Data matches seed (March 2026)
     await page.fill('input[type="month"]', '2026-03');
     await page.click('button:has-text("Load Data")');
-    await expect(page.locator('text=Found')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText(/^Found \d+ records$/)).toBeVisible({ timeout: 10000 });
 
     // 4. Click Toggle "Summary by Project"
     const summaryButton = page.locator('button:has-text("Summary by Project")');

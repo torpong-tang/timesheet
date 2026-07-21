@@ -7,12 +7,14 @@ export function LanguageSwitcher() {
     const { language, setLanguage } = useLanguage()
 
     return (
-        <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-lg border border-slate-200">
+        <div className="flex items-center gap-1 rounded-lg border border-stone-700 bg-stone-800 p-1">
             <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => setLanguage("en")}
-                className={`h-7 px-2 text-xs font-bold rounded-md ${language === "en" ? "bg-white shadow-sm text-primary" : "text-slate-500 hover:text-slate-700"}`}
+                title="Switch to English"
+                aria-label="Switch to English"
+                className={`h-7 rounded-md px-2 text-xs font-bold ${language === "en" ? "bg-amber-500 text-stone-950 shadow-sm" : "text-stone-400 hover:bg-stone-700 hover:text-stone-100"}`}
             >
                 EN
             </Button>
@@ -20,7 +22,9 @@ export function LanguageSwitcher() {
                 variant="ghost"
                 size="sm"
                 onClick={() => setLanguage("th")}
-                className={`h-7 px-2 text-xs font-bold rounded-md ${language === "th" ? "bg-white shadow-sm text-primary" : "text-slate-500 hover:text-slate-700"}`}
+                title="เปลี่ยนเป็นภาษาไทย"
+                aria-label="เปลี่ยนเป็นภาษาไทย"
+                className={`h-7 rounded-md px-2 text-xs font-bold ${language === "th" ? "bg-amber-500 text-stone-950 shadow-sm" : "text-stone-400 hover:bg-stone-700 hover:text-stone-100"}`}
             >
                 TH
             </Button>

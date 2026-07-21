@@ -61,7 +61,7 @@ describe('LanguageSwitcher Component', () => {
             )
 
             const enButton = screen.getByText('EN')
-            expect(enButton.className).toContain('bg-white')
+            expect(enButton.className).toContain('bg-amber-500')
             expect(enButton.className).toContain('shadow-sm')
         })
     })
@@ -78,7 +78,7 @@ describe('LanguageSwitcher Component', () => {
             fireEvent.click(thButton)
 
             // After clicking, TH should be highlighted
-            expect(thButton.className).toContain('bg-white')
+            expect(thButton.className).toContain('bg-amber-500')
             expect(thButton.className).toContain('shadow-sm')
         })
 
@@ -96,7 +96,7 @@ describe('LanguageSwitcher Component', () => {
             fireEvent.click(screen.getByText('EN'))
 
             const enButton = screen.getByText('EN')
-            expect(enButton.className).toContain('bg-white')
+            expect(enButton.className).toContain('bg-amber-500')
         })
 
         it('should save language preference to localStorage', () => {
@@ -124,11 +124,11 @@ describe('LanguageSwitcher Component', () => {
             const thButton = screen.getByText('TH')
 
             // EN should be active by default
-            expect(enButton.className).toContain('bg-white')
-            expect(enButton.className).toContain('text-primary')
+            expect(enButton.className).toContain('bg-amber-500')
+            expect(enButton.className).toContain('text-stone-950')
 
             // TH should be inactive
-            expect(thButton.className).toContain('text-slate-500')
+            expect(thButton.className).toContain('text-stone-400')
         })
 
         it('should swap active styling when language changes', () => {
@@ -145,11 +145,11 @@ describe('LanguageSwitcher Component', () => {
             const thButton = screen.getByText('TH')
 
             // TH should now be active
-            expect(thButton.className).toContain('bg-white')
-            expect(thButton.className).toContain('text-primary')
+            expect(thButton.className).toContain('bg-amber-500')
+            expect(thButton.className).toContain('text-stone-950')
 
             // EN should be inactive
-            expect(enButton.className).toContain('text-slate-500')
+            expect(enButton.className).toContain('text-stone-400')
         })
     })
 

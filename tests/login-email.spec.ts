@@ -25,7 +25,7 @@ test.describe('Login Page - Email & Credentials Testing', () => {
     test('TC-LOGIN-02: Login with email torpong.t@gmail.com should handle gracefully', async ({ page }) => {
         // User attempts to login with email instead of userlogin
         await page.fill('#userlogin', 'torpong.t@gmail.com');
-        await page.fill('#password', 'password123');
+        await page.fill('#password', 'Invalid!Password123');
         await page.click('button[type="submit"]');
 
         // Should stay on login page since email login is not supported
@@ -34,10 +34,11 @@ test.describe('Login Page - Email & Credentials Testing', () => {
         await expect(page).toHaveURL(/.*timesheet\/login/, { timeout: 10000 });
     });
 
-    test('TC-LOGIN-03: Login with correct userlogin Torpong.T and password123', async ({ page }) => {
+    test('TC-LOGIN-03: Login with configured admin credentials', async ({ page }) => {
+        test.skip(!process.env.E2E_ADMIN_PASSWORD, 'E2E_ADMIN_PASSWORD is required');
         // Fill in the correct userlogin credentials
         await page.fill('#userlogin', 'Torpong.T');
-        await page.fill('#password', 'password123');
+        await page.fill('#password', process.env.E2E_ADMIN_PASSWORD!);
         await page.click('button[type="submit"]');
 
         // Should redirect to dashboard
@@ -59,7 +60,7 @@ test.describe('Login Page - Email & Credentials Testing', () => {
 
     test('TC-LOGIN-05: Login with non-existent user should stay on login', async ({ page }) => {
         await page.fill('#userlogin', 'nobody@example.com');
-        await page.fill('#password', 'password123');
+        await page.fill('#password', 'Invalid!Password123');
         await page.click('button[type="submit"]');
 
         // Should stay on login page
@@ -88,8 +89,9 @@ test.describe('Login Page - Email & Credentials Testing', () => {
     });
 
     test('TC-LOGIN-08: After successful login, user name is visible on dashboard', async ({ page }) => {
+        test.skip(!process.env.E2E_ADMIN_PASSWORD, 'E2E_ADMIN_PASSWORD is required');
         await page.fill('#userlogin', 'Torpong.T');
-        await page.fill('#password', 'password123');
+        await page.fill('#password', process.env.E2E_ADMIN_PASSWORD!);
         await page.click('button[type="submit"]');
 
         await expect(page).toHaveURL(/.*timesheet\/dashboard/, { timeout: 15000 });

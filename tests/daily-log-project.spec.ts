@@ -52,14 +52,14 @@ test.describe('Daily Log Modal - Project Dropdown', () => {
 
     test('Project dropdown should show list of projects', async ({ page }) => {
         // 1. Login
-        await page.goto('/login');
+        await page.goto('/timesheet/login');
         await page.fill('#userlogin', devUser.userlogin);
-        await page.fill('#password', 'password123');
+        await page.fill('#password', process.env.E2E_ADMIN_PASSWORD ?? '');
         await page.click('button[type="submit"]');
-        await page.waitForURL('/dashboard');
+        await page.waitForURL(/\/timesheet\/dashboard\/?$/);
 
         // 2. Go to Calendar
-        await page.goto('/dashboard/calendar');
+        await page.goto('/timesheet/dashboard/calendar');
 
         // 3. Wait for calendar to load
         await expect(page.locator('button[data-day]').first()).toBeVisible({ timeout: 15000 });
@@ -100,14 +100,14 @@ test.describe('Daily Log Modal - Project Dropdown', () => {
         test.skip(projects.length === 0, 'No projects available for testing');
 
         // 1. Login
-        await page.goto('/login');
+        await page.goto('/timesheet/login');
         await page.fill('#userlogin', devUser.userlogin);
-        await page.fill('#password', 'password123');
+        await page.fill('#password', process.env.E2E_ADMIN_PASSWORD ?? '');
         await page.click('button[type="submit"]');
-        await page.waitForURL('/dashboard');
+        await page.waitForURL(/\/timesheet\/dashboard\/?$/);
 
         // 2. Go to Calendar
-        await page.goto('/dashboard/calendar');
+        await page.goto('/timesheet/dashboard/calendar');
 
         // 3. Wait for calendar to load
         await expect(page.locator('button[data-day]').first()).toBeVisible({ timeout: 15000 });
@@ -145,14 +145,14 @@ test.describe('Daily Log Modal - Project Dropdown', () => {
         test.skip(projects.length === 0, 'No projects available for testing');
 
         // 1. Login
-        await page.goto('/login');
+        await page.goto('/timesheet/login');
         await page.fill('#userlogin', devUser.userlogin);
-        await page.fill('#password', 'password123');
+        await page.fill('#password', process.env.E2E_ADMIN_PASSWORD ?? '');
         await page.click('button[type="submit"]');
-        await page.waitForURL('/dashboard');
+        await page.waitForURL(/\/timesheet\/dashboard\/?$/);
 
         // 2. Go to Calendar
-        await page.goto('/dashboard/calendar');
+        await page.goto('/timesheet/dashboard/calendar');
 
         // 3. Wait for calendar and select a day
         await expect(page.locator('button[data-day]').first()).toBeVisible({ timeout: 15000 });

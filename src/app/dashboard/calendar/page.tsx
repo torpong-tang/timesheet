@@ -12,14 +12,21 @@ import { toast } from "sonner"
 import { format, isWeekend, isSameDay, startOfMonth, endOfMonth, eachDayOfInterval, addMonths, subMonths, endOfWeek, addDays } from "date-fns"
 import { getAssignedProjects, getTimesheetEntries, deleteEntry, updateEntry, TimesheetInput, getHolidays, logRecurringTime } from "@/app/actions"
 import { Project, TimesheetEntry, Holiday } from "@prisma/client"
-import { Trash2, Plus, Loader2, Calendar, ArrowLeft, ArrowRight, Pencil } from "lucide-react"
+import { Trash2, Plus, Loader2, Calendar, ArrowLeft, ArrowRight, Pencil, Save, X } from "lucide-react"
 import { cn, formatDuration } from "@/lib/utils"
 import { Combobox } from "@/components/ui/combobox"
 import { useLanguage } from "@/components/providers/language-provider"
+import { ActionConfirmDialog } from "@/components/ui/action-confirm-dialog"
+import { ProcessSpinner } from "@/components/ui/process-spinner"
+import { IconTooltip } from "@/components/ui/icon-tooltip"
 
 type TimesheetEntryWithProject = TimesheetEntry & {
     project: Project
 }
+
+type PendingAction =
+    | { type: "save" }
+    | { type: "delete"; id: string; label: string }
 
 export default function TimesheetCalendar() {
     const { t } = useLanguage()
@@ -31,6 +38,8 @@ export default function TimesheetCalendar() {
 
     const [isDialogOpen, setIsDialogOpen] = useState(false)
     const [loading, setLoading] = useState(false)
+    const [dataLoading, setDataLoading] = useState(true)
+    const [pendingAction, setPendingAction] = useState<PendingAction | null>(null)
 
     // Form State
     const [selectedProject, setSelectedProject] = useState("")
@@ -44,6 +53,7 @@ export default function TimesheetCalendar() {
     }, [date]) // Refetch when month _could_ change or just initial
 
     const fetchData = async () => {
+        setDataLoading(true)
         try {
             const [p, e, h] = await Promise.all([
                 getAssignedProjects(),
@@ -55,6 +65,8 @@ export default function TimesheetCalendar() {
             setHolidays(h)
         } catch (err) {
             toast.error("Failed to load data")
+        } finally {
+            setDataLoading(false)
         }
     }
 
@@ -140,7 +152,7 @@ export default function TimesheetCalendar() {
             }
 
             // Refresh data
-            fetchData()
+            await fetchData()
 
             setIsDialogOpen(false)
             resetForm()
@@ -152,14 +164,35 @@ export default function TimesheetCalendar() {
     }
 
     const handleDelete = async (id: string) => {
-        if (!confirm(t('cal.delete_confirm'))) return
+        setLoading(true)
         try {
             await deleteEntry(id)
             toast.success(t('cal.delete_success'))
-            fetchData()
+            await fetchData()
         } catch (err: any) {
             toast.error(err.message)
+        } finally {
+            setLoading(false)
+            setPendingAction(null)
         }
+    }
+
+    const requestSave = () => {
+        if (!date || !selectedProject || !hours || Number.isNaN(parseFloat(hours))) {
+            toast.error(t('cal.error.fill'))
+            return
+        }
+        setPendingAction({ type: "save" })
+    }
+
+    const handleConfirmedAction = async () => {
+        if (!pendingAction) return
+        if (pendingAction.type === "save") {
+            await handleSave()
+            setPendingAction(null)
+            return
+        }
+        await handleDelete(pendingAction.id)
     }
 
     // Calculate totals
@@ -205,21 +238,27 @@ export default function TimesheetCalendar() {
                         <CardHeader className="bg-stone-900 border-b border-stone-700 py-8 px-10">
                             <CardTitle className="flex justify-between items-center w-full">
                                 <div className="flex items-center gap-6">
-                                    <Button
-                                        onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}
-                                        className="bg-orange-500 hover:bg-orange-600 rounded-full h-10 w-10 p-0 shadow-md flex items-center justify-center transition-all hover:scale-105 active:scale-95"
-                                    >
-                                        <ArrowLeft className="h-6 w-6 text-white" strokeWidth={3} />
-                                    </Button>
+                                    <IconTooltip label="Previous month">
+                                        <Button
+                                            onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}
+                                            aria-label="Previous month"
+                                            className="flex h-10 w-10 items-center justify-center rounded-lg bg-orange-500 p-0 shadow-md transition-all hover:bg-orange-600 active:scale-95"
+                                        >
+                                            <ArrowLeft className="h-6 w-6 text-white" strokeWidth={3} />
+                                        </Button>
+                                    </IconTooltip>
                                     <div className="text-4xl font-black text-stone-100 min-w-[220px] text-center pb-1 cursor-default select-none">
                                         {format(currentMonth, "MMMM yyyy")}
                                     </div>
-                                    <Button
-                                        onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
-                                        className="bg-orange-500 hover:bg-orange-600 rounded-full h-10 w-10 p-0 shadow-md flex items-center justify-center transition-all hover:scale-105 active:scale-95"
-                                    >
-                                        <ArrowRight className="h-6 w-6 text-white" strokeWidth={3} />
-                                    </Button>
+                                    <IconTooltip label="Next month">
+                                        <Button
+                                            onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
+                                            aria-label="Next month"
+                                            className="flex h-10 w-10 items-center justify-center rounded-lg bg-orange-500 p-0 shadow-md transition-all hover:bg-orange-600 active:scale-95"
+                                        >
+                                            <ArrowRight className="h-6 w-6 text-white" strokeWidth={3} />
+                                        </Button>
+                                    </IconTooltip>
                                 </div>
                                 <div className="flex items-center gap-6">
                                     <div className="flex items-center gap-2">
@@ -294,13 +333,17 @@ export default function TimesheetCalendar() {
                                     <span className="text-2xl font-black text-stone-100 tracking-tight">{date ? format(date, 'dd/MM/yyyy') : t('cal.pick_date')}</span>
                                 </div>
                                 {date && getDayTotal(date) < 7 && !isWeekend(date) && !isHoliday(date) && (
-                                    <Button size="icon" className="h-12 w-12 rounded-2xl bg-primary shadow-xl shadow-primary/30 hover:scale-110 active:scale-95 transition-all" onClick={() => setIsDialogOpen(true)}>
-                                        <Plus className="h-6 w-6 text-white" />
-                                    </Button>
+                                    <IconTooltip label="Add time entry">
+                                        <Button size="icon" aria-label="Add time entry" className="h-12 w-12 rounded-lg bg-primary shadow-lg shadow-primary/20 transition-all active:scale-95" onClick={() => setIsDialogOpen(true)}>
+                                            <Plus className="h-6 w-6 text-white" />
+                                        </Button>
+                                    </IconTooltip>
                                 )}
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="p-8 flex-1 overflow-y-auto space-y-6 bg-stone-800/50">
+                            {dataLoading && <ProcessSpinner label={t('common.loading')} className="min-h-64 text-stone-300" />}
+                            {!dataLoading && <>
                             {date && getDayEntries(date).map(entry => (
                                 <div key={entry.id} className="group flex flex-col p-6 bg-stone-700 border border-stone-600 rounded-[2rem] shadow-sm hover:shadow-xl transition-all relative border-l-8 border-l-blue-500">
                                     <div className="flex justify-between items-start mb-4">
@@ -310,12 +353,16 @@ export default function TimesheetCalendar() {
                                         <div className="flex items-center gap-3">
                                             <span className="text-2xl font-black text-primary">{formatDuration(entry.hours)}</span>
                                             <div className="flex gap-1">
-                                                <Button variant="ghost" size="icon" className="h-10 w-10 text-stone-400 hover:text-blue-400 hover:bg-blue-900/30 rounded-full transition-colors" onClick={() => handleEdit(entry)}>
-                                                    <Pencil className="h-4 w-4" />
-                                                </Button>
-                                                <Button variant="ghost" size="icon" className="h-10 w-10 text-stone-400 hover:text-red-400 hover:bg-red-900/30 rounded-full transition-colors" onClick={() => handleDelete(entry.id)}>
-                                                    <Trash2 className="h-5 w-5" />
-                                                </Button>
+                                                <IconTooltip label="Edit time entry">
+                                                    <Button variant="ghost" size="icon" aria-label={`Edit ${entry.project.code} time entry`} className="h-10 w-10 rounded-lg text-stone-400 transition-colors hover:bg-blue-900/30 hover:text-blue-400" onClick={() => handleEdit(entry)}>
+                                                        <Pencil className="h-4 w-4" />
+                                                    </Button>
+                                                </IconTooltip>
+                                                <IconTooltip label="Delete time entry">
+                                                    <Button variant="ghost" size="icon" aria-label={`Delete ${entry.project.code} time entry`} className="h-10 w-10 rounded-lg text-stone-400 transition-colors hover:bg-red-900/30 hover:text-red-400" onClick={() => setPendingAction({ type: "delete", id: entry.id, label: `${entry.project.code} - ${formatDuration(entry.hours)}` })}>
+                                                        <Trash2 className="h-5 w-5" />
+                                                    </Button>
+                                                </IconTooltip>
                                             </div>
                                         </div>
                                     </div>
@@ -330,6 +377,7 @@ export default function TimesheetCalendar() {
                                     <p className="text-stone-400 font-black uppercase tracking-[0.3em] text-sm">{t('cal.empty')}</p>
                                 </div>
                             )}
+                            </>}
                         </CardContent>
                         {date && !isWeekend(date) && !isHoliday(date) && (
                             <div className="p-10 bg-stone-900 border-t border-stone-700 mt-auto">
@@ -399,7 +447,9 @@ export default function TimesheetCalendar() {
                                             variant="ghost"
                                             size="icon"
                                             className="absolute -top-2 -right-2 h-6 w-6 bg-red-500 text-white hover:bg-red-600 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                                            onClick={() => handleDelete(entry.id)}
+                                            title="Delete time entry"
+                                            aria-label={`Delete ${entry.project.code} time entry`}
+                                            onClick={() => setPendingAction({ type: "delete", id: entry.id, label: `${entry.project.code} - ${formatDuration(entry.hours)}` })}
                                         >
                                             <Trash2 className="h-3 w-3" />
                                         </Button>
@@ -474,22 +524,35 @@ export default function TimesheetCalendar() {
 
                     <DialogFooter className="p-8 bg-stone-900 border-t border-stone-700 gap-3 sm:gap-0">
                         <Button variant="outline" onClick={() => { setIsDialogOpen(false); resetForm(); }} className="h-12 px-6 border-stone-600 text-stone-300 font-black uppercase text-xs tracking-widest rounded-xl hover:bg-stone-700">
+                            <X className="mr-2 h-4 w-4" />
                             {t('cal.close')}
                         </Button>
                         <Button
-                            onClick={handleSave}
+                            onClick={requestSave}
                             disabled={loading || (date ? getDayTotal(date) >= 7 : false)}
-                            className="h-12 px-8 bg-primary hover:bg-orange-600 text-white font-black uppercase text-xs tracking-widest rounded-xl ml-2 shadow-lg shadow-primary/20"
+                            className="h-12 px-8 bg-emerald-600 hover:bg-emerald-700 text-white font-black uppercase text-xs tracking-widest rounded-xl ml-2 shadow-lg shadow-emerald-900/20"
                         >
-                            {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
                             {editingId ? t('cal.save') : t('cal.log_work')}
                         </Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
 
+            <ActionConfirmDialog
+                open={pendingAction !== null}
+                action={pendingAction?.type === "delete" ? "delete" : editingId ? "update" : "create"}
+                title={pendingAction?.type === "delete" ? "Delete time entry?" : editingId ? "Update time entry?" : "Add time entry?"}
+                description={pendingAction?.type === "delete"
+                    ? `Time entry ${pendingAction.label} will be permanently deleted.`
+                    : `Confirm ${editingId ? "updating" : "adding"} this time entry.`}
+                confirmLabel={pendingAction?.type === "delete" ? "Delete entry" : editingId ? "Update entry" : "Add entry"}
+                loading={loading}
+                onConfirm={handleConfirmedAction}
+                onOpenChange={(open) => { if (!open && !loading) setPendingAction(null) }}
+            />
+
 
         </div>
     )
 }
-

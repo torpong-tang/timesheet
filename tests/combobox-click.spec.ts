@@ -35,11 +35,11 @@ test.describe('Combobox Mouse Click Functionality', () => {
 
     test('Dashboard Team Overview - Filter by User dropdown should be clickable with mouse', async ({ page }) => {
         // 1. Login as GM
-        await page.goto('/login');
+        await page.goto('/timesheet/login');
         await page.fill('#userlogin', gmUser.userlogin);
-        await page.fill('#password', 'password123');
+        await page.fill('#password', process.env.E2E_ADMIN_PASSWORD ?? '');
         await page.click('button[type="submit"]');
-        await page.waitForURL('/dashboard');
+        await page.waitForURL(/\/timesheet\/dashboard\/?$/);
 
         // 2. Verify Team Overview section is visible
         await expect(page.getByText('Team Overview')).toBeVisible({ timeout: 10000 });
@@ -88,11 +88,11 @@ test.describe('Combobox Mouse Click Functionality', () => {
         test.skip(teamMembers.length < 2, 'Need at least 2 team members for this test');
 
         // 1. Login as GM
-        await page.goto('/login');
+        await page.goto('/timesheet/login');
         await page.fill('#userlogin', gmUser.userlogin);
-        await page.fill('#password', 'password123');
+        await page.fill('#password', process.env.E2E_ADMIN_PASSWORD ?? '');
         await page.click('button[type="submit"]');
-        await page.waitForURL('/dashboard');
+        await page.waitForURL(/\/timesheet\/dashboard\/?$/);
 
         // 2. Verify Team Overview section is visible
         await expect(page.getByText('Team Overview')).toBeVisible({ timeout: 10000 });
@@ -126,11 +126,11 @@ test.describe('Combobox Mouse Click Functionality', () => {
 
     test('Dashboard Team Overview - Search functionality in dropdown', async ({ page }) => {
         // 1. Login as GM
-        await page.goto('/login');
+        await page.goto('/timesheet/login');
         await page.fill('#userlogin', gmUser.userlogin);
-        await page.fill('#password', 'password123');
+        await page.fill('#password', process.env.E2E_ADMIN_PASSWORD ?? '');
         await page.click('button[type="submit"]');
-        await page.waitForURL('/dashboard');
+        await page.waitForURL(/\/timesheet\/dashboard\/?$/);
 
         // 2. Verify Team Overview section is visible
         await expect(page.getByText('Team Overview')).toBeVisible({ timeout: 10000 });

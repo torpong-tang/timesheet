@@ -8,7 +8,7 @@ function Skeleton({ className, ...props }: SkeletonProps) {
     return (
         <div
             className={cn(
-                "animate-pulse rounded-md bg-slate-200",
+                "animate-pulse rounded-md bg-stone-700/80",
                 className
             )}
             {...props}
@@ -20,7 +20,7 @@ function Skeleton({ className, ...props }: SkeletonProps) {
 
 function SkeletonCard({ className }: { className?: string }) {
     return (
-        <div className={cn("rounded-xl border bg-white p-6 shadow-sm", className)}>
+        <div className={cn("rounded-lg border border-stone-700 bg-stone-800 p-6 shadow-sm", className)}>
             <div className="space-y-4">
                 <Skeleton className="h-4 w-1/3" />
                 <Skeleton className="h-8 w-1/2" />
@@ -32,9 +32,9 @@ function SkeletonCard({ className }: { className?: string }) {
 
 function SkeletonTable({ rows = 5, cols = 4 }: { rows?: number; cols?: number }) {
     return (
-        <div className="rounded-xl border bg-white overflow-hidden">
+        <div className="overflow-hidden rounded-lg border border-stone-700 bg-stone-800">
             {/* Header */}
-            <div className="border-b bg-slate-50 p-4">
+            <div className="border-b border-stone-700 bg-stone-900 p-4">
                 <div className="flex gap-4">
                     {Array.from({ length: cols }).map((_, i) => (
                         <Skeleton key={i} className="h-4 flex-1" />
@@ -57,7 +57,7 @@ function SkeletonTable({ rows = 5, cols = 4 }: { rows?: number; cols?: number })
 
 function SkeletonCalendar() {
     return (
-        <div className="rounded-xl border bg-white p-6 space-y-4">
+        <div className="space-y-4 rounded-lg border border-stone-700 bg-stone-800 p-6">
             {/* Header */}
             <div className="flex items-center justify-between">
                 <Skeleton className="h-8 w-32" />
@@ -135,7 +135,7 @@ function SkeletonList({ items = 5 }: { items?: number }) {
     return (
         <div className="space-y-3">
             {Array.from({ length: items }).map((_, i) => (
-                <div key={i} className="flex items-center gap-4 p-3 rounded-lg border bg-white">
+                <div key={i} className="flex items-center gap-4 rounded-lg border border-stone-700 bg-stone-800 p-3">
                     <Skeleton className="h-10 w-10 rounded-full" />
                     <div className="flex-1 space-y-2">
                         <Skeleton className="h-4 w-1/3" />

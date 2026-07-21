@@ -40,14 +40,9 @@ describe('Admin Actions', () => {
             expect(result).toEqual(mockUsers)
         })
 
-        it('should return users for GM', async () => {
+        it('should reject user lists for GM', async () => {
             mockGetServerSession.mockResolvedValue(mockGMSession)
-            const mockUsers = [{ id: '1', name: 'User 1', userlogin: 'user1', email: 'user1@test.com', role: 'DEV', status: 'Enable' }]
-            mockPrisma.user.findMany.mockResolvedValue(mockUsers as any)
-
-            const result = await getUsers()
-
-            expect(result).toEqual(mockUsers)
+            await expect(getUsers()).rejects.toThrow('Unauthorized')
         })
     })
 
@@ -61,7 +56,7 @@ describe('Admin Actions', () => {
                     name: 'New User',
                     email: 'new@test.com',
                     role: 'DEV',
-                    password: 'password123',
+                    password: 'StrongPass!123',
                     status: 'Enable',
                 })
             ).rejects.toThrow('Unauthorized')
@@ -87,12 +82,14 @@ describe('Admin Actions', () => {
                 name: 'New User',
                 email: 'new@test.com',
                 role: 'DEV',
-                password: 'password123',
+                password: 'StrongPass!123',
                 status: 'Enable',
             })
 
             expect(result.success).toBe(true)
-            expect(mockPrisma.user.create).toHaveBeenCalled()
+            expect(mockPrisma.user.create).toHaveBeenCalledWith(expect.objectContaining({
+                data: expect.objectContaining({ mustChangePassword: true }),
+            }))
         })
 
         it('should throw error when creating user without password', async () => {
@@ -136,6 +133,28 @@ describe('Admin Actions', () => {
             expect(result.success).toBe(true)
             expect(mockPrisma.user.update).toHaveBeenCalled()
         })
+
+        it('revokes sessions and requires a password change after an admin reset', async () => {
+            mockGetServerSession.mockResolvedValue(mockAdminSession)
+            mockPrisma.user.update.mockResolvedValue({ id: 'existing-user-id' } as any)
+
+            await upsertUser({
+                id: 'existing-user-id',
+                userlogin: 'existinguser',
+                name: 'Existing User',
+                email: 'existing@test.com',
+                role: 'DEV',
+                password: 'Replacement!Pass123',
+                status: 'Enable',
+            })
+
+            expect(mockPrisma.user.update).toHaveBeenCalledWith(expect.objectContaining({
+                data: expect.objectContaining({
+                    mustChangePassword: true,
+                    sessionVersion: { increment: 1 },
+                }),
+            }))
+        })
     })
 
     describe('deleteUser', () => {
@@ -174,8 +193,8 @@ describe('Admin Actions', () => {
             await expect(getProjects()).rejects.toThrow('Unauthorized')
         })
 
-        it('should return projects for any authenticated user', async () => {
-            mockGetServerSession.mockResolvedValue(mockDevSession)
+        it('should return projects for ADMIN', async () => {
+            mockGetServerSession.mockResolvedValue(mockAdminSession)
             const mockProjects = [
                 { id: 'p1', code: 'PROJ1', name: 'Project 1', startDate: new Date(), endDate: new Date(), budget: 1000 },
             ]
