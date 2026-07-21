@@ -41,7 +41,7 @@ Generate the secret with `openssl rand -base64 48`. Load this environment before
 Run these checks in the local repository before pushing:
 
 ```bash
-npm ci
+npm ci --include=dev
 npx prisma validate
 npm run lint
 npm test
@@ -78,7 +78,7 @@ set +a
 git fetch --prune origin
 git switch main
 git pull --ff-only origin main
-npm ci
+npm ci --include=dev
 npx prisma generate
 npm run lint
 npm test
@@ -131,7 +131,7 @@ Copy encrypted backups off-server and monitor backup age and disk usage.
 
 1. Stop only the Timesheet process: `pm2 stop timesheet`.
 2. Switch the checkout to the recorded previous release SHA.
-3. Run `npm ci`, `npx prisma generate` and `npm run build`.
+3. Run `npm ci --include=dev`, `npx prisma generate` and `npm run build`.
 4. Restore the database only when a migration is not backward compatible and the maintenance window has been approved.
 5. Start only Timesheet and repeat all health checks.
 
