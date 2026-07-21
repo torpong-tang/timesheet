@@ -44,7 +44,7 @@ Run these checks in the local repository before pushing:
 npm ci --include=dev
 npx prisma validate
 npm run lint
-npm test
+NODE_ENV=test npm test
 npm run security:audit
 npm run build
 npm run smoke:standalone
@@ -81,7 +81,7 @@ git pull --ff-only origin main
 npm ci --include=dev
 npx prisma generate
 npm run lint
-npm test
+NODE_ENV=test npm test
 npm run build
 TIMESHEET_DB_PATH=/var/lib/2startup/timesheet/timesheet.db npm run db:backup
 npx prisma migrate deploy
